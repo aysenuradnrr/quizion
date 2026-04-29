@@ -512,11 +512,7 @@
     .explore-page .page-header h1 { font-family: 'Syne', sans-serif; font-size: 1.6rem; font-weight: 800; color: var(--navy); }
     .explore-page .page-header p { color: var(--muted); font-size: .92rem; margin-top: 4px; }
     .category-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 28px; max-width: 1200px; }
-    .cat-tab {
-      padding: 8px 18px; border-radius: 20px; font-size: .85rem; font-weight: 600;
-      border: 1.5px solid #e0e5f2; background: white; color: var(--muted);
-      cursor: pointer; transition: all .2s; font-family: 'DM Sans', sans-serif;
-    }
+    .cat-tab { padding: 8px 18px; border-radius: 20px; font-size: .85rem; font-weight: 600; border: 1.5px solid #e0e5f2; background: white; color: var(--muted); cursor: pointer; transition: all .2s; font-family: 'DM Sans', sans-serif; }
     .cat-tab:hover, .cat-tab.active { background: var(--blue); border-color: var(--blue); color: white; }
     .explore-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap: 20px; max-width: 1200px; }
     .explore-card { background: white; border-radius: 14px; overflow: hidden; box-shadow: var(--card-shadow); border: 1.5px solid #eef1f9; cursor: pointer; transition: all .25s; }
@@ -531,829 +527,662 @@
     .explore-card-body p { font-size: .8rem; color: var(--muted); line-height: 1.5; margin-bottom: 12px; }
     .explore-card-footer { display: flex; justify-content: space-between; align-items: center; }
     .explore-card-footer .count { font-size: .78rem; color: var(--muted); }
-    .explore-card-footer .start-btn {
-      padding: 6px 14px; background: var(--blue); color: white; border: none;
-      border-radius: 7px; font-size: .78rem; font-weight: 600; cursor: pointer;
-      font-family: 'DM Sans', sans-serif; transition: background .2s;
-    }
+    .explore-card-footer .start-btn { padding: 6px 14px; background: var(--blue); color: white; border: none; border-radius: 7px; font-size: .78rem; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: background .2s; }
     .explore-card-footer .start-btn:hover { background: var(--blue-light); }
 
     /* ── RESPONSIVE ── */
-    @media (max-width: 768px) {
-      .hero-inner { grid-template-columns: 1fr; }
-      .hero-visual { display: none; }
-      nav .nav-links { display: none; }
-      .tools-grid { grid-template-columns: repeat(2,1fr); }
-      .footer-top { grid-template-columns: 1fr 1fr; }
-      .stats-inner { flex-direction: column; text-align: center; }
-      .stats-left h2 { max-width: 100%; }
+    @media (max-width: 900px) {
       .auth-left { display: none; }
-      .auth-right { padding: 40px 24px; }
-      .dash-grid { grid-template-columns: repeat(2,1fr); }
-      .qa-grid { grid-template-columns: 1fr; }
+      .hero-inner { grid-template-columns: 1fr; text-align: center; }
+      .hero p { margin: 0 auto 36px; }
+      .hero-btns { justify-content: center; }
+      .hero-visual { margin-top: 40px; }
+      .nav-links { display: none; }
+      .footer-top { grid-template-columns: 1fr 1fr; }
+      .dash-grid, .qa-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 500px) {
+      .footer-top { grid-template-columns: 1fr; }
+      .dash-grid, .qa-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
 
-<!-- ============================
-     NAVBAR
-============================= -->
-<nav id="mainNav">
-  <a class="logo" onclick="navigateTo('home')">
-    <div class="logo-icon">🎓</div>
-    <span class="logo-text">Quiz<span>ion</span></span>
-  </a>
+  <nav id="mainNav" style="display: none;">
+    <a class="logo" onclick="showPage('home')">
+      <div class="logo-icon">Q</div>
+      <div class="logo-text">Quiz<span>ion</span></div>
+    </a>
+    
+    <ul class="nav-links">
+      <li><a href="javascript:void(0)" id="nav-home" class="active" onclick="showPage('home')"><span>🏠</span> Anasayfa</a></li>
+      <li><a href="javascript:void(0)" id="nav-library" onclick="showPage('library')"><span>📚</span> Kütüphanem</a></li>
+      <li><a href="javascript:void(0)" id="nav-quick" onclick="showPage('home')"><span>⚡</span> Hızlı Erişim</a></li>
+      <li><a href="javascript:void(0)" id="nav-explore" onclick="showPage('explore')"><span>🌍</span> Keşfet</a></li>
+    </ul>
 
-  <!-- Guest Nav Links -->
-  <ul class="nav-links" id="guestNavLinks">
-    <li><a href="#features" id="featuresLink">Özellikler</a></li>
-    <li><a href="#" onclick="return false;">Fiyatlar</a></li>
-    <li><a href="#" onclick="return false;">Hakkımızda</a></li>
-  </ul>
-
-  <!-- Logged-in Nav Links -->
-  <ul class="nav-links" id="authNavLinks" style="display:none">
-    <li><a href="#" onclick="navigateTo('home'); return false;" id="navHome">🏠 Ana Sayfa</a></li>
-    <li><a href="#" onclick="navigateTo('library'); return false;" id="navLibrary">📚 Kütüphanem</a></li>
-    <li><a href="#" onclick="navigateTo('dashboard'); return false;" id="navDash">⚡ Hızlı Erişim</a></li>
-    <li><a href="#" onclick="navigateTo('explore'); return false;" id="navExplore">🔍 Keşfet</a></li>
-  </ul>
-
-  <div class="nav-right">
-    <!-- Guest Actions -->
-    <div class="nav-guest-actions" id="guestActions">
-      <button class="btn-outline" onclick="showPage('login')">Giriş Yap</button>
-      <button class="btn-primary" onclick="showPage('register')">Kayıt Ol</button>
-    </div>
-    <!-- User Menu -->
-    <div class="user-menu" id="userMenu" style="display:none">
-      <button class="user-avatar-btn" onclick="toggleDropdown()">
-        <div class="avatar-circle" id="navAvatarInitials">AY</div>
-        <div class="user-info">
-          <span class="user-name" id="navUserName">Kullanıcı</span>
-          <span class="user-role">Üye</span>
-        </div>
-        <span class="dropdown-arrow">▾</span>
-      </button>
-      <div class="user-dropdown" id="userDropdown">
-        <button class="dropdown-item" onclick="navigateTo('dashboard')">⚡ Hızlı Erişim</button>
-        <button class="dropdown-item" onclick="navigateTo('library')">📚 Kütüphanem</button>
-        <button class="dropdown-item" onclick="navigateTo('explore')">🔍 Keşfet</button>
-        <div class="dropdown-sep"></div>
-        <button class="dropdown-item" onclick="alert('Profil sayfası yakında!')">👤 Profilim</button>
-        <button class="dropdown-item" onclick="alert('Ayarlar sayfası yakında!')">⚙️ Ayarlar</button>
-        <div class="dropdown-sep"></div>
-        <button class="dropdown-item danger" onclick="logout()">🚪 Çıkış Yap</button>
+    <div class="nav-right">
+      <div id="navGuest" class="nav-guest-actions">
+        <button class="btn-outline" onclick="showPage('login')">Giriş Yap</button>
+        <button class="btn-primary" onclick="showPage('register')">Ücretsiz Başla</button>
       </div>
-    </div>
-  </div>
-</nav>
-
-<!-- ============================
-     HOME PAGE
-============================= -->
-<div id="homePage" class="page active">
-
-  <!-- HERO -->
-  <section class="hero">
-    <div class="hero-inner">
-      <div class="hero-text">
-        <div class="hero-badge">✨ Yeni Nesil Sınav Platformu</div>
-        <h1>Sınavlarınızı<br/>Kolaylaştırın,<br/><span>Başarıyı Yakalayın!</span></h1>
-        <p>Quizion ile online sınav oluşturun, adaylarınızı değerlendirin ve sonuçları anında analiz edin. Her yerden, her zaman, güvenli ve kolay sınav deneyimi.</p>
-        <div class="hero-btns">
-          <button class="hero-btn-main" onclick="showPage('register')">
-            🚀 Ücretsiz Başla
-          </button>
-          <button class="hero-btn-secondary" onclick="showPage('login')">
-            ▶️ Giriş Yap
-          </button>
-        </div>
-        <div class="hero-trust">
-          <div class="trust-item"><span>✓</span> Kolay Kullanım</div>
-          <div class="trust-item"><span>✓</span> Güvenli Altyapı</div>
-          <div class="trust-item"><span>✓</span> 7/24 Destek</div>
-        </div>
-      </div>
-      <div class="hero-visual">
-        <div class="dashboard-card">
-          <div class="dash-header">
-            <div>
-              <div class="dash-title">Merhaba, Admin 👋</div>
-              <div class="dash-greeting">Genel Bakış — Nisan 2025</div>
-            </div>
+      <div id="navUser" class="user-menu" style="display: none;">
+        <button class="user-avatar-btn" onclick="toggleDropdown()">
+          <div class="avatar-circle" id="userInitial">U</div>
+          <div class="user-info">
+            <span class="user-name" id="userNameDisplay">Kullanıcı</span>
+            <span class="user-role">Öğrenci</span>
           </div>
-          <div class="dash-stats">
-            <div class="stat-box"><div class="stat-num">12</div><div class="stat-lbl">Sınav</div></div>
-            <div class="stat-box"><div class="stat-num">2.350</div><div class="stat-lbl">Aday</div></div>
-            <div class="stat-box"><div class="stat-num">98%</div><div class="stat-lbl">Başarı Oranı</div></div>
-            <div class="stat-box"><div class="stat-num">1.245</div><div class="stat-lbl">Tamamlanan</div></div>
-          </div>
-          <div class="dash-chart">
-            <div class="bar" style="height:40%"></div>
-            <div class="bar" style="height:65%"></div>
-            <div class="bar accent" style="height:80%"></div>
-            <div class="bar" style="height:55%"></div>
-            <div class="bar" style="height:90%"></div>
-            <div class="bar accent" style="height:70%"></div>
-            <div class="bar" style="height:85%"></div>
-            <div class="bar" style="height:60%"></div>
-          </div>
-        </div>
-        <div class="float-badge">
-          <div class="badge-icon">📊</div>
-          <div class="badge-text">
-            <strong>Sınav Tamamlandı!</strong>
-            <span>156 aday katıldı</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- FEATURES -->
-  <section id="features" class="features">
-    <div class="section-center">
-      <span class="section-tag">Hakkımızda</span>
-      <h2 class="section-title">Akıllı, Güvenli ve<br/>Pratik Sınav Çözümleri</h2>
-      <p class="section-desc">Quizion, kurumların ve eğitimcilerin sınav süreçlerini dijitalleştirerek zaman kazanmasını, hata payını azaltmasını sağlar.</p>
-    </div>
-    <div class="feature-grid">
-      <div class="feature-card">
-        <div class="feature-icon fi-blue">📝</div>
-        <h4>Kolay Sınav Oluşturma</h4>
-        <p>Sürükle & bırak ile dakikalar içinde sınavınızı oluşturun. Farklı soru tipleri ve zengin içerik desteği.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon fi-green">👥</div>
-        <h4>Aday ve Sınav Yönetimi</h4>
-        <p>Adaylarınızı yönetin, gruplar oluşturun ve sınav erişimlerini kolayca kontrol edin.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon fi-purple">🛡️</div>
-        <h4>Güvenli ve Adil Sınavlar</h4>
-        <p>Gelişmiş güvenlik önlemleri ile sınavın bütünlüğünü korur, adil değerlendirme yapın.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon fi-orange">📈</div>
-        <h4>Detaylı Raporlama</h4>
-        <p>Anlık raporlar ve detaylı analizlerle doğru kararlar ve stratejiler geliştirin.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- STATS -->
-  <section class="stats-strip">
-    <div class="stats-inner">
-      <div class="stats-left">
-        <span class="section-tag" style="color:var(--accent)">RAKAMLARLA QUİZION</span>
-        <h2>Binlerce kurum ve kullanıcı güveniyor.</h2>
-      </div>
-      <div class="stats-numbers">
-        <div class="stat-item"><div class="num">10.000+</div><div class="lbl">Aktif Kullanıcı</div></div>
-        <div class="stat-item"><div class="num">50.000+</div><div class="lbl">Oluşturulan Sınav</div></div>
-        <div class="stat-item"><div class="num">1M+</div><div class="lbl">Sınava Katılan Aday</div></div>
-        <div class="stat-item"><div class="num">98%</div><div class="lbl">Kullanıcı Memnuniyeti</div></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- TOOLS -->
-  <section>
-    <div class="section-center">
-      <span class="section-tag">Neden Quizion?</span>
-      <h2 class="section-title">İhtiyacınız Olan Her Şey<br/>Tek Bir Platformda</h2>
-      <p class="section-desc">Sınav süreçlerinin her adımı için geliştirilmiş kapsamlı araçlar ve çözümler.</p>
-    </div>
-    <div class="tools-grid">
-      <div class="tool-card" onclick="showPage('register')"><div class="tool-icon">📝</div><h5>Sınav Oluşturma</h5></div>
-      <div class="tool-card" onclick="showPage('register')"><div class="tool-icon">🔴</div><h5>Canlı Sınav</h5></div>
-      <div class="tool-card" onclick="showPage('register')"><div class="tool-icon">📚</div><h5>Ödev & Test</h5></div>
-      <div class="tool-card" onclick="showPage('register')"><div class="tool-icon">🗂️</div><h5>Soru Bankası</h5></div>
-      <div class="tool-card" onclick="showPage('register')"><div class="tool-icon">📊</div><h5>Raporlama</h5></div>
-      <div class="tool-card" onclick="showPage('register')"><div class="tool-icon">🔗</div><h5>Entegrasyon</h5></div>
-    </div>
-  </section>
-
-  <!-- CTA -->
-  <section style="padding: 40px 5% 80px;">
-    <div class="cta-section">
-      <div class="cta-left">
-        <div class="cta-icon">🎓</div>
-        <div class="cta-text">
-          <h3>Siz de Quizion'a Katılın!</h3>
-          <p>Online sınav süreçlerinizi kolaylaştırın, zamandan tasarruf edin ve başarıya giden yolda bir adım önde olun.</p>
-        </div>
-      </div>
-      <div class="cta-btns">
-        <button class="cta-btn-main" onclick="showPage('register')">🚀 Ücretsiz Başla</button>
-        <button class="cta-btn-outline" onclick="showPage('login')">Giriş Yap →</button>
-      </div>
-    </div>
-  </section>
-
-  <!-- TESTIMONIALS -->
-  <section class="testimonials">
-    <div class="section-center">
-      <span class="section-tag">Kullanıcılarımız Ne Diyor?</span>
-      <h2 class="section-title">Binlerce kullanıcı Quizion ile<br/>daha verimli sınavlar yapıyor.</h2>
-    </div>
-    <div class="testi-grid">
-      <div class="testi-card">
-        <div class="testi-stars">★★★★★</div>
-        <p>"Quizion sayesinde sınav süreçlerimiz çok daha pratik ve güvenli hale geldi. Raporlama özellikleri gerçekten mükemmel!"</p>
-        <div class="testi-author">
-          <div class="testi-avatar">AK</div>
-          <div class="testi-name"><strong>Ayşe K.</strong><span>Eğitim Yöneticisi</span></div>
-        </div>
-      </div>
-      <div class="testi-card">
-        <div class="testi-stars">★★★★★</div>
-        <p>"Canlı sınav özelliği ile uzaktan eğitimlerde büyük kolaylık sağladı. Adaylar ve sonuçlar tek ekranda, mükemmel!"</p>
-        <div class="testi-author">
-          <div class="testi-avatar">MT</div>
-          <div class="testi-name"><strong>Mehmet T.</strong><span>İK Müdürü</span></div>
-        </div>
-      </div>
-      <div class="testi-card">
-        <div class="testi-stars">★★★★★</div>
-        <p>"Kullanıcı dostu arayüzü ve güçlü altyapısı ile Quizion bizim için vazgeçilmez bir çözüm ortağı oldu."</p>
-        <div class="testi-author">
-          <div class="testi-avatar">ED</div>
-          <div class="testi-name"><strong>Elif D.</strong><span>Akademisyen</span></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- FOOTER -->
-  <footer>
-    <div class="footer-top">
-      <div class="footer-brand">
-        <a class="logo" onclick="navigateTo('home')" style="cursor:pointer">
-          <div class="logo-icon">🎓</div>
-          <span class="logo-text" style="color:white">Quiz<span>ion</span></span>
-        </a>
-        <p>Quizion, online sınav süreçlerinizi kolaylaştıran, güvenli ve yenilikçi bir sınav yönetim platformudur.</p>
-      </div>
-      <div class="footer-col">
-        <h6>Ürün</h6>
-        <a href="#">Özellikler</a>
-        <a href="#">Fiyatlandırma</a>
-        <a href="#">Güncellemeler</a>
-        <a href="#">Soru Bankası</a>
-      </div>
-      <div class="footer-col">
-        <h6>Çözümler</h6>
-        <a href="#">Eğitim Kurumları</a>
-        <a href="#">Kurumlar</a>
-        <a href="#">Sınav Merkezi</a>
-        <a href="#">Danışmanlık</a>
-      </div>
-      <div class="footer-col">
-        <h6>Kurumsal</h6>
-        <a href="#">Hakkımızda</a>
-        <a href="#">Kariyer</a>
-        <a href="#">Blog</a>
-        <a href="#">Gizlilik Politikası</a>
-      </div>
-      <div class="footer-col">
-        <h6>Destek</h6>
-        <a href="#">Yardım Merkezi</a>
-        <a href="#">İletişim</a>
-        <a href="#">Kullanım Şartları</a>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      <span>©️ 2025 Quizion. Tüm hakları saklıdır.</span>
-      <span>Gizlilik Politikası · Kullanım Şartları</span>
-    </div>
-  </footer>
-</div>
-
-<!-- ============================
-     LOGIN PAGE
-============================= -->
-<div id="loginPage" class="page">
-  <div class="auth-page">
-    <div class="auth-left">
-      <div class="auth-left-content">
-        <a class="auth-logo" onclick="showPage('home')">
-          <div class="logo-icon">🎓</div>
-          <span class="logo-text">Quiz<span style="color:var(--accent)">ion</span></span>
-        </a>
-        <h2>Hoş Geldiniz<br/><span>Tekrar!</span></h2>
-        <p>Hesabınıza giriş yaparak sınavlarınızı yönetmeye, sonuçları takip etmeye ve öğrencilerinizi değerlendirmeye devam edin.</p>
-        <div class="auth-features">
-          <div class="auth-feature-item">
-            <div class="auth-feature-icon">📊</div>
-            <div class="auth-feature-text">
-              <strong>Anlık Raporlar</strong>
-              <span>Sınav sonuçlarını anında görün</span>
-            </div>
-          </div>
-          <div class="auth-feature-item">
-            <div class="auth-feature-icon">🛡️</div>
-            <div class="auth-feature-text">
-              <strong>Güvenli Giriş</strong>
-              <span>256-bit SSL şifreleme ile koruma</span>
-            </div>
-          </div>
-          <div class="auth-feature-item">
-            <div class="auth-feature-icon">🔔</div>
-            <div class="auth-feature-text">
-              <strong>Bildirimler</strong>
-              <span>Önemli güncellemelerden haberdar olun</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="auth-right">
-      <div class="auth-form-box">
-        <button class="back-btn" onclick="showPage('home')">← Ana Sayfaya Dön</button>
-        <h2>Giriş Yap</h2>
-        <p class="auth-subtitle">
-          Hesabınız yok mu? <a onclick="showPage('register')" style="cursor:pointer">Ücretsiz kayıt olun →</a>
-        </p>
-
-        <div class="auth-error" id="loginError">E-posta veya şifre hatalı. Lütfen tekrar deneyin.</div>
-
-        <div class="form-group">
-          <label>E-posta Adresi</label>
-          <input type="email" id="loginEmail" placeholder="ornek@email.com" />
-        </div>
-        <div class="form-group">
-          <label>Şifre</label>
-          <div class="password-wrapper">
-            <input type="password" id="loginPassword" placeholder="Şifrenizi girin" />
-            <button class="toggle-pw" onclick="togglePw('loginPassword', this)" type="button">👁️</button>
-          </div>
-        </div>
-        <div class="form-options">
-          <label class="checkbox-label">
-            <input type="checkbox" id="rememberMe" /> Beni Hatırla
-          </label>
-          <a href="#" class="forgot-link">Şifremi Unuttum?</a>
-        </div>
-
-        <button class="auth-submit-btn" onclick="handleLogin()">
-          🔐 Giriş Yap
+          <span class="dropdown-arrow">▼</span>
         </button>
+        <div class="user-dropdown" id="userDropdown">
+          <button class="dropdown-item" onclick="showPage('home')">👤 Profilim</button>
+          <button class="dropdown-item" onclick="showPage('library')">📊 Raporlarım</button>
+          <button class="dropdown-item">⚙️ Ayarlar</button>
+          <div class="dropdown-sep"></div>
+          <button class="dropdown-item danger" onclick="logout()">🚪 Çıkış Yap</button>
+        </div>
+      </div>
+    </div>
+  </nav>
 
-        <div class="auth-divider">veya şununla devam edin</div>
+  <div id="page-landing" class="page active">
+    <header class="hero">
+      <div class="hero-inner">
+        <div class="hero-text">
+          <div class="hero-badge">✨ Yeni Nesil Sınav Deneyimi</div>
+          <h1>Geleceğin <span>Eğitim</span> Platformuna Hoş Geldiniz</h1>
+          <p>Yapay zeka destekli analizler, interaktif soru bankaları ve gerçek zamanlı sınav simülasyonları ile başarınızı katlayın.</p>
+          <div class="hero-btns">
+            <button class="hero-btn-main" onclick="showPage('register')">Hemen Başla <span>🚀</span></button>
+            <button class="hero-btn-secondary">Platformu Tanı</button>
+          </div>
+          <div class="hero-trust">
+            <div class="trust-item"><span>✓</span> 10K+ Aktif Öğrenci</div>
+            <div class="trust-item"><span>✓</span> 500+ Hazır Sınav</div>
+            <div class="trust-item"><span>✓</span> 24/7 Destek</div>
+          </div>
+        </div>
+        <div class="hero-visual">
+          <div class="dashboard-card">
+            <div class="dash-header">
+              <div class="dash-title">Haftalık Performans</div>
+              <div class="dash-greeting">Harika gidiyorsun!</div>
+            </div>
+            <div class="dash-stats">
+              <div class="stat-box">
+                <div class="stat-num">12</div>
+                <div class="stat-lbl">Sınav</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-num">%88</div>
+                <div class="stat-lbl">Başarı</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-num">450</div>
+                <div class="stat-lbl">Soru</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-num">8s</div>
+                <div class="stat-lbl">Süre</div>
+              </div>
+            </div>
+            <div class="dash-chart">
+              <div class="bar" style="height: 40%;"></div>
+              <div class="bar" style="height: 60%;"></div>
+              <div class="bar accent" style="height: 85%;"></div>
+              <div class="bar" style="height: 50%;"></div>
+              <div class="bar" style="height: 75%;"></div>
+              <div class="bar" style="height: 95%;"></div>
+              <div class="bar" style="height: 65%;"></div>
+            </div>
+            <div class="float-badge">
+              <div class="badge-icon">🏆</div>
+              <div class="badge-text">
+                <strong>Yeni Başarı!</strong>
+                <span>Matematik Ustası</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
 
-        <div class="social-btns">
-          <button class="social-btn" onclick="socialLogin('Google')">
-            <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/></svg>
-            Google
-          </button>
-          <button class="social-btn" onclick="socialLogin('Microsoft')">
-            <svg width="18" height="18" viewBox="0 0 18 18"><rect width="8.5" height="8.5" fill="#F25022"/><rect x="9.5" width="8.5" height="8.5" fill="#7FBA00"/><rect y="9.5" width="8.5" height="8.5" fill="#00A4EF"/><rect x="9.5" y="9.5" width="8.5" height="8.5" fill="#FFB900"/></svg>
-            Microsoft
-          </button>
+    <section class="features">
+      <div class="section-center">
+        <span class="section-tag">Özellikler</span>
+        <h2 class="section-title">Eğitimi Daha Verimli Hale Getiriyoruz</h2>
+        <p class="section-desc">Quizion, öğrenme sürecini kişiselleştirerek hedeflerinize daha hızlı ulaşmanızı sağlar.</p>
+      </div>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-icon fi-blue">📊</div>
+          <h4>Detaylı Analiz</h4>
+          <p>Her sınav sonrası eksik olduğunuz konuları yapay zeka ile tespit edin.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon fi-green">⏱️</div>
+          <h4>Canlı Sınavlar</h4>
+          <p>Arkadaşlarınızla veya sınıfınızla aynı anda yarışın, sıralamanızı görün.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon fi-purple">📁</div>
+          <h4>Zengin İçerik</h4>
+          <p>Binlerce profesyonel soru ve konu anlatım materyaline anında erişin.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon fi-orange">📱</div>
+          <h4>Her Yerde</h4>
+          <p>Bilgisayar, tablet veya telefonunuzdan dilediğiniz zaman çalışın.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="stats-strip">
+      <div class="stats-inner">
+        <div class="stats-left">
+          <h2>Rakamlarla Quizion Başarısı</h2>
+        </div>
+        <div class="stats-numbers">
+          <div class="stat-item">
+            <div class="num">50M+</div>
+            <div class="lbl">Çözülen Soru</div>
+          </div>
+          <div class="stat-item">
+            <div class="num">150K</div>
+            <div class="lbl">Öğretmen</div>
+          </div>
+          <div class="stat-item">
+            <div class="num">%95</div>
+            <div class="lbl">Memnuniyet</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-center">
+        <span class="section-tag">Araçlar</span>
+        <h2 class="section-title">Her Branşa Uygun Çözümler</h2>
+      </div>
+      <div class="tools-grid">
+        <div class="tool-card">
+          <div class="tool-icon">🧬</div>
+          <h5>Fen Bilimleri</h5>
+        </div>
+        <div class="tool-card">
+          <div class="tool-icon">📐</div>
+          <h5>Matematik</h5>
+        </div>
+        <div class="tool-card">
+          <div class="tool-icon">🌍</div>
+          <h5>Sosyal Bilgiler</h5>
+        </div>
+        <div class="tool-card">
+          <div class="tool-icon">📚</div>
+          <h5>Edebiyat</h5>
+        </div>
+        <div class="tool-card">
+          <div class="tool-icon">🇬🇧</div>
+          <h5>Yabancı Dil</h5>
+        </div>
+        <div class="tool-card">
+          <div class="tool-icon">🎨</div>
+          <h5>Sanat</h5>
+        </div>
+      </div>
+    </section>
+
+    <section class="testimonials">
+      <div class="section-center">
+        <span class="section-tag">Yorumlar</span>
+        <h2 class="section-title">Kullanıcılarımız Ne Diyor?</h2>
+      </div>
+      <div class="testi-grid">
+        <div class="testi-card">
+          <div class="testi-stars">★★★★★</div>
+          <p>"YKS sürecinde en büyük yardımcım oldu. Analizler sayesinde hangi konuya çalışmam gerektiğini net görebiliyorum."</p>
+          <div class="testi-author">
+            <div class="testi-avatar">M</div>
+            <div class="testi-name"><strong>Mert Yılmaz</strong><span>Lise Öğrencisi</span></div>
+          </div>
+        </div>
+        <div class="testi-card">
+          <div class="testi-stars">★★★★★</div>
+          <p>"Öğrencilerime ödev vermek ve gelişimlerini takip etmek artık çok daha kolay. Arayüzü harika."</p>
+          <div class="testi-author">
+            <div class="testi-avatar">A</div>
+            <div class="testi-name"><strong>Ayşe Demir</strong><span>Matematik Öğretmeni</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div style="padding: 0 5% 80px;">
+      <div class="cta-section">
+        <div class="cta-left">
+          <div class="cta-icon">🎁</div>
+          <div class="cta-text">
+            <h3>Hemen Ücretsiz Deneyin</h3>
+            <p>İlk 14 gün tüm premium özellikler hediye!</p>
+          </div>
+        </div>
+        <div class="cta-btns">
+          <button class="cta-btn-main" onclick="showPage('register')">Hesap Oluştur</button>
+          <button class="cta-btn-outline">Planları İncele</button>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <div class="footer-top">
+        <div class="footer-brand">
+          <div class="logo">
+            <div class="logo-icon" style="background: white; color: var(--blue);">Q</div>
+            <div class="logo-text" style="color: white;">Quiz<span>ion</span></div>
+          </div>
+          <p>Eğitimi teknolojiyle birleştirerek herkes için erişilebilir kılıyoruz.</p>
+        </div>
+        <div class="footer-col">
+          <h6>Ürün</h6>
+          <a href="#">Özellikler</a>
+          <a href="#">Sınavlar</a>
+          <a href="#">Kurumsal</a>
+        </div>
+        <div class="footer-col">
+          <h6>Destek</h6>
+          <a href="#">Yardım Merkezi</a>
+          <a href="#">Topluluk</a>
+          <a href="#">İletişim</a>
+        </div>
+        <div class="footer-col">
+          <h6>Yasal</h6>
+          <a href="#">Gizlilik</a>
+          <a href="#">Kullanım Şartları</a>
+          <a href="#">KVKK</a>
+        </div>
+        <div class="footer-col">
+          <h6>Sosyal</h6>
+          <a href="#">Instagram</a>
+          <a href="#">Twitter</a>
+          <a href="#">LinkedIn</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <div>© 2024 Quizion. Tüm Hakları Saklıdır.</div>
+        <div style="display: flex; gap: 20px;">
+          <span>Türkçe (TR)</span>
+          <span>Güvenli Ödeme</span>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <div id="page-login" class="page">
+    <div class="auth-page">
+      <div class="auth-left">
+        <div class="auth-left-content">
+          <a href="#" class="auth-logo" onclick="showPage('landing')">
+            <div class="logo-icon">Q</div>
+            <div class="logo-text">Quiz<span>ion</span></div>
+          </a>
+          <h2>Öğrenmeye <span>Kaldığın Yerden</span> Devam Et</h2>
+          <p>Binlerce öğrenci ve öğretmenin arasına katıl, başarıya bir adım daha yaklaş.</p>
+          <div class="auth-features">
+            <div class="auth-feature-item">
+              <div class="auth-feature-icon">🛡️</div>
+              <div class="auth-feature-text"><strong>Güvenli Giriş</strong><span>Verileriniz uçtan uca korunur</span></div>
+            </div>
+            <div class="auth-feature-item">
+              <div class="auth-feature-icon">⚡</div>
+              <div class="auth-feature-text"><strong>Hızlı Erişim</strong><span>Tüm cihazlardan anında senkronize</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="auth-right">
+        <div class="auth-form-box">
+          <button class="back-btn" onclick="showPage('landing')">← Anasayfaya Dön</button>
+          <h2>Hoş Geldiniz!</h2>
+          <p class="auth-subtitle">Hesabınız yok mu? <a href="#" onclick="showPage('register')">Hemen oluşturun</a></p>
+          
+          <div class="auth-error" id="loginError">E-posta veya şifre hatalı. Lütfen tekrar deneyin.</div>
+          
+          <form id="loginForm" onsubmit="handleLogin(event)">
+            <div class="form-group">
+              <label>E-Posta Adresi</label>
+              <input type="email" id="loginEmail" placeholder="ornek@mail.com" required>
+            </div>
+            <div class="form-group">
+              <label>Şifre</label>
+              <div class="password-wrapper">
+                <input type="password" id="loginPass" placeholder="••••••••" required>
+                <button type="button" class="toggle-pw" onclick="togglePw('loginPass', this)">👁️</button>
+              </div>
+            </div>
+            <div class="form-options">
+              <label class="checkbox-label"><input type="checkbox"> Beni Hatırla</label>
+              <a href="#" class="forgot-link">Şifremi Unuttum</a>
+            </div>
+            <button type="submit" class="auth-submit-btn">Giriş Yap</button>
+          </form>
+
+          <div class="auth-divider">veya şununla devam et</div>
+
+          <div class="social-btns">
+            <button class="social-btn" onclick="socialLogin('Google')">
+              <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G"> Google
+            </button>
+            <button class="social-btn" onclick="socialLogin('Apple')">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="A"> Apple
+            </button>
+          </div>
+          <p class="terms-text">Giriş yaparak <a href="#">Kullanım Şartları</a>'nı kabul etmiş olursunuz.</p>
         </div>
       </div>
     </div>
   </div>
-</div>
 
-<!-- ============================
-     REGISTER PAGE
-============================= -->
-<div id="registerPage" class="page">
-  <div class="auth-page">
-    <div class="auth-left">
-      <div class="auth-left-content">
-        <a class="auth-logo" onclick="showPage('home')">
-          <div class="logo-icon">🎓</div>
-          <span class="logo-text">Quiz<span style="color:var(--accent)">ion</span></span>
-        </a>
-        <h2>Hemen Ücretsiz<br/><span>Başlayın!</span></h2>
-        <p>Kredi kartı gerekmez. 14 gün boyunca tüm özellikleri ücretsiz kullanın. İstediğiniz zaman iptal edin.</p>
-        <div class="auth-features">
-          <div class="auth-feature-item">
-            <div class="auth-feature-icon">🆓</div>
-            <div class="auth-feature-text">
-              <strong>14 Gün Ücretsiz</strong>
-              <span>Kredi kartı bilgisi gerekmez</span>
+  <div id="page-register" class="page">
+    <div class="auth-page">
+      <div class="auth-left">
+        <div class="auth-left-content">
+          <a href="#" class="auth-logo" onclick="showPage('landing')">
+            <div class="logo-icon">Q</div>
+            <div class="logo-text">Quiz<span>ion</span></div>
+          </a>
+          <h2>Geleceğin <span>Başarı Hikayesini</span> Birlikte Yazalım</h2>
+          <p>Kişiselleştirilmiş eğitim araçlarıyla potansiyelini keşfetmeye hazır mısın?</p>
+          <div class="auth-features">
+            <div class="auth-feature-item">
+              <div class="auth-feature-icon">🎁</div>
+              <div class="auth-feature-text"><strong>Ücretsiz Başlangıç</strong><span>Kredi kartı gerektirmez</span></div>
             </div>
-          </div>
-          <div class="auth-feature-item">
-            <div class="auth-feature-icon">📝</div>
-            <div class="auth-feature-text">
-              <strong>Sınırsız Sınav</strong>
-              <span>Deneme süresinde sınırsız oluşturun</span>
-            </div>
-          </div>
-          <div class="auth-feature-item">
-            <div class="auth-feature-icon">🏆</div>
-            <div class="auth-feature-text">
-              <strong>10.000+ Kullanıcı</strong>
-              <span>Güvenilir platform, kanıtlanmış sonuçlar</span>
+            <div class="auth-feature-item">
+              <div class="auth-feature-icon">✨</div>
+              <div class="auth-feature-text"><strong>Premium Özellikler</strong><span>İlk hafta tüm araçlar açık</span></div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-    <div class="auth-right">
-      <div class="auth-form-box">
-        <button class="back-btn" onclick="showPage('home')">← Ana Sayfaya Dön</button>
-        <h2>Hesap Oluştur</h2>
-        <p class="auth-subtitle">
-          Zaten hesabınız var mı? <a onclick="showPage('login')" style="cursor:pointer">Giriş yapın →</a>
-        </p>
+      <div class="auth-right">
+        <div class="auth-form-box">
+          <button class="back-btn" onclick="showPage('landing')">← Anasayfaya Dön</button>
+          <h2>Hesap Oluştur</h2>
+          <p class="auth-subtitle">Zaten üye misiniz? <a href="#" onclick="showPage('login')">Giriş yapın</a></p>
+          
+          <div class="auth-success" id="regSuccess">Hesabınız başarıyla oluşturuldu! Yönlendiriliyorsunuz...</div>
 
-        <div class="auth-error" id="registerError"></div>
-        <div class="auth-success" id="registerSuccess"></div>
+          <form id="regForm" onsubmit="handleRegister(event)">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Ad</label>
+                <input type="text" id="regFirstName" placeholder="Can" required>
+              </div>
+              <div class="form-group">
+                <label>Soyad</label>
+                <input type="text" id="regLastName" placeholder="Yılmaz" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>E-Posta Adresi</label>
+              <input type="email" id="regEmail" placeholder="can@mail.com" required>
+            </div>
+            <div class="form-group">
+              <label>Şifre</label>
+              <div class="password-wrapper">
+                <input type="password" id="regPass" placeholder="En az 8 karakter" required>
+                <button type="button" class="toggle-pw" onclick="togglePw('regPass', this)">👁️</button>
+              </div>
+            </div>
+            <button type="submit" class="auth-submit-btn">Ücretsiz Üye Ol</button>
+          </form>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label>Ad</label>
-            <input type="text" id="regFirstName" placeholder="Adınız" />
+          <div class="auth-divider">veya şununla devam et</div>
+
+          <div class="social-btns">
+            <button class="social-btn" onclick="socialLogin('Google')">
+              <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G"> Google
+            </button>
+            <button class="social-btn" onclick="socialLogin('Apple')">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="A"> Apple
+            </button>
           </div>
-          <div class="form-group">
-            <label>Soyad</label>
-            <input type="text" id="regLastName" placeholder="Soyadınız" />
-          </div>
-        </div>
-        <div class="form-group">
-          <label>E-posta Adresi</label>
-          <input type="email" id="regEmail" placeholder="ornek@email.com" />
-        </div>
-        <div class="form-group">
-          <label>Kurum / Şirket Adı</label>
-          <input type="text" id="regCompany" placeholder="Kurumunuzun adı (opsiyonel)" />
-        </div>
-        <div class="form-group">
-          <label>Şifre</label>
-          <div class="password-wrapper">
-            <input type="password" id="regPassword" placeholder="En az 8 karakter" />
-            <button class="toggle-pw" onclick="togglePw('regPassword', this)" type="button">👁️</button>
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Şifre Tekrar</label>
-          <div class="password-wrapper">
-            <input type="password" id="regPasswordConfirm" placeholder="Şifrenizi tekrar girin" />
-            <button class="toggle-pw" onclick="togglePw('regPasswordConfirm', this)" type="button">👁️</button>
-          </div>
-        </div>
-
-        <button class="auth-submit-btn" onclick="handleRegister()">
-          🎉 Ücretsiz Hesap Oluştur
-        </button>
-
-        <p class="terms-text">
-          Kayıt olarak <a href="#">Kullanım Şartları</a>'nı ve <a href="#">Gizlilik Politikası</a>'nı kabul etmiş olursunuz.
-        </p>
-
-        <div class="auth-divider">veya şununla kayıt olun</div>
-        <div class="social-btns">
-          <button class="social-btn" onclick="socialLogin('Google')">
-            <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/></svg>
-            Google
-          </button>
-          <button class="social-btn" onclick="socialLogin('Microsoft')">
-            <svg width="18" height="18" viewBox="0 0 18 18"><rect width="8.5" height="8.5" fill="#F25022"/><rect x="9.5" width="8.5" height="8.5" fill="#7FBA00"/><rect y="9.5" width="8.5" height="8.5" fill="#00A4EF"/><rect x="9.5" y="9.5" width="8.5" height="8.5" fill="#FFB900"/></svg>
-            Microsoft
-          </button>
+          <p class="terms-text">Üye olarak <a href="#">KVKK Aydınlatma Metni</a>'ni okuduğunuzu kabul edersiniz.</p>
         </div>
       </div>
     </div>
   </div>
-</div>
 
-<!-- ============================
-     DASHBOARD (Hızlı Erişim)
-============================= -->
-<div id="dashboardPage" class="page">
-  <div class="dashboard-page">
+  <div id="page-home" class="page dashboard-page">
     <div class="page-header">
-      <h1 id="dashWelcome">Merhaba 👋</h1>
-      <p>Quizion panelinize hoş geldiniz. Hızlıca başlamak için aşağıdaki araçları kullanın.</p>
+      <h1 id="dashWelcome">Merhaba, Kullanıcı 👋</h1>
+      <p>Bugün yeni bir şeyler öğrenmek için harika bir gün!</p>
     </div>
     <div class="dash-grid">
-      <div class="dash-stat-card"><div class="icon">📝</div><div class="value">0</div><div class="label">Sınavlarım</div></div>
-      <div class="dash-stat-card"><div class="icon">👥</div><div class="value">0</div><div class="label">Adaylarım</div></div>
-      <div class="dash-stat-card"><div class="icon">✅</div><div class="value">0</div><div class="label">Tamamlanan</div></div>
-      <div class="dash-stat-card"><div class="icon">📊</div><div class="value">—</div><div class="label">Başarı Oranı</div></div>
+      <div class="dash-stat-card">
+        <div class="icon">📝</div>
+        <div class="value">24</div>
+        <div class="label">Tamamlanan Sınav</div>
+      </div>
+      <div class="dash-stat-card">
+        <div class="icon">🎯</div>
+        <div class="value">%92</div>
+        <div class="label">Ortalama Başarı</div>
+      </div>
+      <div class="dash-stat-card">
+        <div class="icon">🔥</div>
+        <div class="value">5 Gün</div>
+        <div class="label">Çalışma Serisi</div>
+      </div>
+      <div class="dash-stat-card">
+        <div class="icon">💎</div>
+        <div class="value">1,250</div>
+        <div class="label">Quizion Puanı</div>
+      </div>
     </div>
+
     <div class="quick-actions">
-      <h3>⚡ Hızlı Erişim</h3>
+      <h3>Hızlı İşlemler</h3>
       <div class="qa-grid">
-        <div class="qa-card" onclick="alert('Sınav oluşturma modülü yakında!')">
-          <div class="qa-icon">📝</div>
-          <div class="qa-text"><h5>Yeni Sınav Oluştur</h5><p>Hızlıca yeni bir sınav başlatın</p></div>
+        <div class="qa-card" onclick="alert('Sınav oluşturma yakında!')">
+          <div class="qa-icon">➕</div>
+          <div class="qa-text"><h5>Sınav Oluştur</h5><p>Yeni bir test veya canlı yarışma başlat</p></div>
         </div>
-        <div class="qa-card" onclick="navigateTo('library')">
-          <div class="qa-icon">📚</div>
-          <div class="qa-text"><h5>Kütüphanem</h5><p>Tüm sınavlarınızı görüntüleyin</p></div>
-        </div>
-        <div class="qa-card" onclick="alert('Canlı sınav modülü yakında!')">
-          <div class="qa-icon">🔴</div>
-          <div class="qa-text"><h5>Canlı Sınav Başlat</h5><p>Anlık sınav oturumu açın</p></div>
-        </div>
-        <div class="qa-card" onclick="alert('Soru bankası yakında!')">
-          <div class="qa-icon">🗂️</div>
-          <div class="qa-text"><h5>Soru Bankası</h5><p>Soru havuzunuzu yönetin</p></div>
-        </div>
-        <div class="qa-card" onclick="alert('Raporlar yakında!')">
-          <div class="qa-icon">📊</div>
-          <div class="qa-text"><h5>Raporlar</h5><p>Detaylı analiz ve istatistikler</p></div>
-        </div>
-        <div class="qa-card" onclick="navigateTo('explore')">
+        <div class="qa-card" onclick="showPage('explore')">
           <div class="qa-icon">🔍</div>
-          <div class="qa-text"><h5>Keşfet</h5><p>Hazır şablonları inceleyin</p></div>
+          <div class="qa-text"><h5>Sınav Keşfet</h5><p>Topluluğun oluşturduğu sınavlara göz at</p></div>
+        </div>
+        <div class="qa-card" onclick="showPage('library')">
+          <div class="qa-icon">📊</div>
+          <div class="qa-text"><h5>Raporlarım</h5><p>Gelişimini detaylı grafiklerle incele</p></div>
         </div>
       </div>
     </div>
   </div>
-</div>
 
-<!-- ============================
-     LIBRARY (Kütüphanem)
-============================= -->
-<div id="libraryPage" class="page">
-  <div class="library-page">
+  <div id="page-library" class="page library-page">
     <div class="page-header">
-      <h1>📚 Kütüphanem</h1>
-      <p>Oluşturduğunuz ve katıldığınız tüm sınavlar burada listeleniyor.</p>
+      <h1>Kütüphanem</h1>
+      <p>Tüm sınavların, ödevlerin ve kayıtlı içeriklerin burada.</p>
     </div>
     <div class="library-search">
-      <input type="text" placeholder="Sınav ara..." />
-      <button>🔍 Ara</button>
+      <input type="text" placeholder="Sınav başlığı veya konu ara...">
+      <button>Ara</button>
     </div>
     <div class="quiz-list">
       <div class="quiz-card">
         <div class="quiz-card-top">
-          <span class="quiz-type-badge badge-live">🔴 Canlı</span>
+          <span class="quiz-type-badge badge-live">Canlı Sınav</span>
+          <span style="font-size: .75rem; color: var(--muted);">Dün</span>
         </div>
-        <h4>Matematik Değerlendirme Sınavı</h4>
-        <p>10. sınıf öğrencileri için türev ve integral konularını kapsayan değerlendirme sınavı.</p>
+        <h4>Matematik: Türev ve İntegral Giriş</h4>
+        <p>15 Soru • 30 Dakika • Karma Zorluk</p>
         <div class="quiz-card-meta">
-          <span>📅 15 Nisan 2025</span>
-          <span>👥 42 aday</span>
-          <span>⏱ 60 dk</span>
+          <span>👥 45 Katılımcı</span>
+          <span style="color: var(--accent);">⭐ %94 Başarı</span>
         </div>
       </div>
       <div class="quiz-card">
         <div class="quiz-card-top">
-          <span class="quiz-type-badge badge-test">📝 Test</span>
+          <span class="quiz-type-badge badge-test">Deneme</span>
+          <span style="font-size: .75rem; color: var(--muted);">3 Gün Önce</span>
         </div>
-        <h4>İngilizce Seviye Belirleme</h4>
-        <p>Yeni başlayanlar için İngilizce dilbilgisi ve kelime bilgisi seviye testi.</p>
+        <h4>TYT Türkçe Genel Deneme #4</h4>
+        <p>40 Soru • 50 Dakika • Orta Seviye</p>
         <div class="quiz-card-meta">
-          <span>📅 10 Nisan 2025</span>
-          <span>👥 128 aday</span>
-          <span>⏱ 45 dk</span>
+          <span>👤 Bireysel</span>
+          <span style="color: var(--blue);">⭐ %82 Başarı</span>
         </div>
       </div>
       <div class="quiz-card">
         <div class="quiz-card-top">
-          <span class="quiz-type-badge badge-hw">📚 Ödev</span>
+          <span class="quiz-type-badge badge-hw">Ödev</span>
+          <span style="font-size: .75rem; color: var(--muted);">Geçen Hafta</span>
         </div>
-        <h4>Tarih Araştırma Ödevi</h4>
-        <p>Osmanlı İmparatorluğu'nun kuruluş dönemine ilişkin araştırma soruları içeren ödev.</p>
+        <h4>İngilizce: B2 Vocabulary Quiz</h4>
+        <p>20 Soru • 15 Dakika • İleri Seviye</p>
         <div class="quiz-card-meta">
-          <span>📅 5 Nisan 2025</span>
-          <span>👥 35 aday</span>
-          <span>⏱ Sınırsız</span>
+          <span>🏫 Sınıf A-1</span>
+          <span style="color: #00856a;">⭐ %100 Başarı</span>
         </div>
-      </div>
-      <div class="quiz-card" style="border: 2px dashed #c8d8ff; background: #f8fbff; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:10px; min-height:160px; cursor:pointer;" onclick="alert('Sınav oluşturma modülü yakında!')">
-        <div style="font-size:2rem">➕</div>
-        <span style="font-family:'Syne',sans-serif; font-weight:700; color:var(--blue); font-size:.9rem;">Yeni Sınav Ekle</span>
       </div>
     </div>
   </div>
-</div>
 
-<!-- ============================
-     EXPLORE (Keşfet)
-============================= -->
-<div id="explorePage" class="page">
-  <div class="explore-page">
+  <div id="page-explore" class="page explore-page">
     <div class="page-header">
-      <h1>🔍 Keşfet</h1>
-      <p>Hazır sınav şablonlarını ve kategorileri keşfedin, anında kullanmaya başlayın.</p>
+      <h1>Sınav Keşfet</h1>
+      <p>Binlerce içerik arasından sana uygun olanı seç ve hemen başla.</p>
     </div>
     <div class="category-tabs">
       <button class="cat-tab active" onclick="setTab(this)">Tümü</button>
-      <button class="cat-tab" onclick="setTab(this)">Matematik</button>
-      <button class="cat-tab" onclick="setTab(this)">Fen Bilimleri</button>
-      <button class="cat-tab" onclick="setTab(this)">Dil & Edebiyat</button>
-      <button class="cat-tab" onclick="setTab(this)">Tarih</button>
-      <button class="cat-tab" onclick="setTab(this)">İnsan Kaynakları</button>
-      <button class="cat-tab" onclick="setTab(this)">Yazılım</button>
+      <button class="cat-tab" onclick="setTab(this)">YKS/LGS</button>
+      <button class="cat-tab" onclick="setTab(this)">Dil Eğitimi</button>
+      <button class="cat-tab" onclick="setTab(this)">Genel Kültür</button>
+      <button class="cat-tab" onclick="setTab(this)">Kodlama</button>
     </div>
     <div class="explore-grid">
       <div class="explore-card">
         <div class="explore-card-img ec-blue">📐</div>
         <div class="explore-card-body">
-          <h4>Geometri Temel Kavramlar</h4>
-          <p>Lise düzeyinde geometri konularını kapsayan 25 soruluk test sınavı.</p>
+          <h4>Geometri: Üçgenler</h4>
+          <p>Tüm üçgen kurallarını kapsayan temel seviye sınavı.</p>
           <div class="explore-card-footer">
-            <span class="count">👥 1.240 kullanım</span>
-            <button class="start-btn" onclick="alert('Şablon yakında aktif olacak!')">Kullan →</button>
+            <span class="count">1.2k Çözüm</span>
+            <button class="start-btn">Başlat</button>
           </div>
         </div>
       </div>
       <div class="explore-card">
-        <div class="explore-card-img ec-green">🧪</div>
+        <div class="explore-card-img ec-orange">🧬</div>
         <div class="explore-card-body">
-          <h4>Kimya: Periyodik Tablo</h4>
-          <p>Elementler ve periyodik tablo konusunda kapsamlı değerlendirme testi.</p>
+          <h4>Biyoloji: Hücre</h4>
+          <p>Organeller ve hücre yapısı üzerine detaylı test.</p>
           <div class="explore-card-footer">
-            <span class="count">👥 876 kullanım</span>
-            <button class="start-btn" onclick="alert('Şablon yakında aktif olacak!')">Kullan →</button>
+            <span class="count">850 Çözüm</span>
+            <button class="start-btn">Başlat</button>
           </div>
         </div>
       </div>
       <div class="explore-card">
-        <div class="explore-card-img ec-purple">💼</div>
+        <div class="explore-card-img ec-purple">🌍</div>
         <div class="explore-card-body">
-          <h4>İK İşe Alım Testi</h4>
-          <p>İnsan kaynakları süreçleri için standart yetkinlik değerlendirme testi.</p>
+          <h4>Dünya Başkentleri</h4>
+          <p>Eğlenceli bir genel kültür yarışmasına hazır mısın?</p>
           <div class="explore-card-footer">
-            <span class="count">👥 2.105 kullanım</span>
-            <button class="start-btn" onclick="alert('Şablon yakında aktif olacak!')">Kullan →</button>
+            <span class="count">3.4k Çözüm</span>
+            <button class="start-btn">Başlat</button>
           </div>
         </div>
       </div>
       <div class="explore-card">
-        <div class="explore-card-img ec-orange">🖥️</div>
+        <div class="explore-card-img ec-green">💻</div>
         <div class="explore-card-body">
-          <h4>Python Temel Sınavı</h4>
-          <p>Yazılım geliştirici adayları için Python programlama dili temel bilgi testi.</p>
+          <h4>Python Temelleri</h4>
+          <p>Değişkenler, döngüler ve fonksiyonlar üzerine hızlı bir quiz.</p>
           <div class="explore-card-footer">
-            <span class="count">👥 3.412 kullanım</span>
-            <button class="start-btn" onclick="alert('Şablon yakında aktif olacak!')">Kullan →</button>
-          </div>
-        </div>
-      </div>
-      <div class="explore-card">
-        <div class="explore-card-img ec-blue">📖</div>
-        <div class="explore-card-body">
-          <h4>Türkçe Dilbilgisi</h4>
-          <p>Cümle yapısı, yazım kuralları ve noktalama işaretleri konularını kapsayan test.</p>
-          <div class="explore-card-footer">
-            <span class="count">👥 987 kullanım</span>
-            <button class="start-btn" onclick="alert('Şablon yakında aktif olacak!')">Kullan →</button>
-          </div>
-        </div>
-      </div>
-      <div class="explore-card">
-        <div class="explore-card-img ec-green">🌍</div>
-        <div class="explore-card-body">
-          <h4>Dünya Tarihi: 20. Yüzyıl</h4>
-          <p>Birinci ve İkinci Dünya Savaşları dönemini kapsayan tarih bilgisi sınavı.</p>
-          <div class="explore-card-footer">
-            <span class="count">👥 654 kullanım</span>
-            <button class="start-btn" onclick="alert('Şablon yakında aktif olacak!')">Kullan →</button>
+            <span class="count">2.1k Çözüm</span>
+            <button class="start-btn">Başlat</button>
           </div>
         </div>
       </div>
     </div>
   </div>
-</div>
 
-<script>
-  // ── STATE ──
-  let currentUser = null;
-  // Demo users (in real app this would be a backend)
-  const users = [
-    { email: 'demo@quizion.com', password: 'demo1234', firstName: 'Demo', lastName: 'Kullanıcı' }
-  ];
 
-  // ── PAGE NAVIGATION ──
-  function showPage(page) {
+  <script>
+  // ── ROUTER ──
+  function showPage(pageId) {
+    // Hide all
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    const map = {
-      home: 'homePage',
-      login: 'loginPage',
-      register: 'registerPage',
-      dashboard: 'dashboardPage',
-      library: 'libraryPage',
-      explore: 'explorePage',
-    };
-    const el = document.getElementById(map[page]);
-    if (el) {
-      el.classList.add('active');
+    // Show target
+    const target = document.getElementById('page-' + pageId);
+    if (target) {
+      target.classList.add('active');
       window.scrollTo(0, 0);
     }
-    updateNavHighlight(page);
+
+    // Nav visibility
+    const nav = document.getElementById('mainNav');
+    if (pageId === 'landing' || pageId === 'login' || pageId === 'register') {
+      nav.style.display = 'none';
+    } else {
+      nav.style.display = 'flex';
+    }
+
+    // Active link highlight
+    document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+    const activeLink = document.getElementById('nav-' + pageId);
+    if (activeLink) activeLink.classList.add('active');
   }
 
-  function navigateTo(page) {
-    if (['dashboard','library','explore'].includes(page) && !currentUser) {
-      showPage('login');
-      return;
-    }
-    showPage(page);
-    closeDropdown();
+  // ── AUTH LOGIC ──
+  function handleLogin(e) {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value;
+    // Mock user
+    const mockUser = {
+      firstName: 'Can',
+      lastName: 'Yılmaz',
+      email: email,
+      role: 'Öğrenci'
+    };
+    loginSuccess(mockUser);
   }
 
-  function updateNavHighlight(page) {
-    document.querySelectorAll('#authNavLinks a').forEach(a => a.classList.remove('active'));
-    const map = { home: 'navHome', library: 'navLibrary', dashboard: 'navDash', explore: 'navExplore' };
-    if (map[page]) {
-      const el = document.getElementById(map[page]);
-      if (el) el.classList.add('active');
-    }
-  }
-
-  // ── AUTH ──
-  function handleLogin() {
-    const email = document.getElementById('loginEmail').value.trim();
-    const password = document.getElementById('loginPassword').value;
-    const errEl = document.getElementById('loginError');
-
-    if (!email || !password) {
-      errEl.textContent = 'Lütfen e-posta ve şifrenizi girin.';
-      errEl.classList.add('show');
-      return;
-    }
-
-    // Find user
-    const user = users.find(u => u.email === email && u.password === password);
-    if (!user) {
-      errEl.textContent = 'E-posta veya şifre hatalı. Lütfen tekrar deneyin.';
-      errEl.classList.add('show');
-      return;
-    }
-
-    errEl.classList.remove('show');
-    loginSuccess(user);
-  }
-
-  function handleRegister() {
-    const firstName = document.getElementById('regFirstName').value.trim();
-    const lastName = document.getElementById('regLastName').value.trim();
-    const email = document.getElementById('regEmail').value.trim();
-    const password = document.getElementById('regPassword').value;
-    const passwordConfirm = document.getElementById('regPasswordConfirm').value;
-    const errEl = document.getElementById('registerError');
-    const sucEl = document.getElementById('registerSuccess');
-
-    errEl.classList.remove('show');
-    sucEl.classList.remove('show');
-
-    if (!firstName || !lastName || !email || !password) {
-      errEl.textContent = 'Lütfen tüm zorunlu alanları doldurun.';
-      errEl.classList.add('show'); return;
-    }
-    if (!email.includes('@') || !email.includes('.')) {
-      errEl.textContent = 'Lütfen geçerli bir e-posta adresi girin.';
-      errEl.classList.add('show'); return;
-    }
-    if (password.length < 8) {
-      errEl.textContent = 'Şifreniz en az 8 karakter olmalıdır.';
-      errEl.classList.add('show'); return;
-    }
-    if (password !== passwordConfirm) {
-      errEl.textContent = 'Şifreler eşleşmiyor. Lütfen tekrar kontrol edin.';
-      errEl.classList.add('show'); return;
-    }
-    if (users.find(u => u.email === email)) {
-      errEl.textContent = 'Bu e-posta adresi zaten kayıtlı. Giriş yapmayı deneyin.';
-      errEl.classList.add('show'); return;
-    }
-
-    const newUser = { email, password, firstName, lastName };
-    users.push(newUser);
-
-    sucEl.textContent = '🎉 Hesabınız oluşturuldu! Yönlendiriliyorsunuz...';
-    sucEl.classList.add('show');
-
-    setTimeout(() => loginSuccess(newUser), 1200);
+  function handleRegister(e) {
+    e.preventDefault();
+    document.getElementById('regSuccess').classList.add('show');
+    const mockUser = {
+      firstName: document.getElementById('regFirstName').value,
+      lastName: document.getElementById('regLastName').value,
+      email: document.getElementById('regEmail').value,
+      role: 'Öğrenci'
+    };
+    setTimeout(() => {
+      loginSuccess(mockUser);
+      document.getElementById('regSuccess').classList.remove('show');
+    }, 1500);
   }
 
   function loginSuccess(user) {
-    currentUser = user;
-    // Update navbar
-    document.getElementById('guestNavLinks').style.display = 'none';
-    document.getElementById('guestActions').style.display = 'none';
-    document.getElementById('authNavLinks').style.display = 'flex';
-    document.getElementById('userMenu').style.display = 'block';
-
-    const initials = (user.firstName[0] + user.lastName[0]).toUpperCase();
-    document.getElementById('navAvatarInitials').textContent = initials;
-    document.getElementById('navUserName').textContent = user.firstName + ' ' + user.lastName;
-    document.getElementById('dashWelcome').textContent = 'Merhaba, ' + user.firstName + '! 👋';
-
-    showPage('dashboard');
+    // UI Updates
+    document.getElementById('navGuest').style.display = 'none';
+    document.getElementById('navUser').style.display = 'block';
+    document.getElementById('userNameDisplay').textContent = user.firstName + ' ' + user.lastName;
+    document.getElementById('userInitial').textContent = user.firstName[0];
+    document.getElementById('dashWelcome').textContent = 'Merhaba, ' + user.firstName + ' 👋';
+    
+    showPage('home');
   }
 
   function logout() {
-    currentUser = null;
-    document.getElementById('guestNavLinks').style.display = 'flex';
-    document.getElementById('guestActions').style.display = 'flex';
-    document.getElementById('authNavLinks').style.display = 'none';
-    document.getElementById('userMenu').style.display = 'none';
+    document.getElementById('navGuest').style.display = 'flex';
+    document.getElementById('navUser').style.display = 'none';
     closeDropdown();
-    showPage('home');
+    showPage('landing');
   }
 
   function socialLogin(provider) {
@@ -1370,8 +1199,9 @@
     document.getElementById('userDropdown').classList.remove('open');
   }
   document.addEventListener('click', function(e) {
-    const menu = document.getElementById('userMenu');
-    if (menu && !menu.contains(e.target)) closeDropdown();
+    const menu = document.getElementById('userDropdown');
+    const btn = document.querySelector('.user-avatar-btn');
+    if (menu && !menu.contains(e.target) && !btn.contains(e.target)) closeDropdown();
   });
 
   // ── PASSWORD TOGGLE ──
@@ -1396,10 +1226,10 @@
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Enter') {
       const activePage = document.querySelector('.page.active');
-      if (activePage && activePage.id === 'loginPage') handleLogin();
-      if (activePage && activePage.id === 'registerPage') handleRegister();
+      if (activePage.id === 'page-login') handleLogin(new Event('submit'));
     }
   });
-</script>
+  </script>
+
 </body>
 </html>
