@@ -1215,7 +1215,6 @@
       btn.textContent = '👁️';
     }
   }
-
   // ── CATEGORY TABS ──
   function setTab(el) {
     document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
