@@ -1369,10 +1369,5 @@ document.addEventListener('keydown', e => {
 /* ---- Init ---- */
 buildSidebarNav('student');
 </script>
-<<<<<<< HEAD
-=======
-
-
->>>>>>> 4fd5f8eec693c9812056c990817ce16936b58817
 </body>
 </html>
