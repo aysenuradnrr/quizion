@@ -719,6 +719,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
 selectRegRole('ogrenci');
 setFfStar(5);
 setFfRole('Öğrenci');
+
 </script>
 </body>
 </html>
