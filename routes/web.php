@@ -21,9 +21,16 @@ Route::post('/logout',   [AuthenticatedSessionController::class, 'destroy'])
     ->middleware('auth')->name('logout');
 
 // Öğrenci paneli
+
 Route::middleware(['auth', 'ogrenci'])->group(function () {
     Route::get('/ogrenci/dashboard', [OgrenciController::class, 'dashboard'])
         ->name('ogrenci.dashboard');
+
+    Route::get('/ogrenci/test-baslat', [OgrenciController::class, 'testBaslat'])
+        ->name('ogrenci.test.baslat');
+
+    Route::post('/ogrenci/test-olustur', [OgrenciController::class, 'testOlustur'])
+        ->name('ogrenci.test.olustur');
 });
 
 // Öğretmen paneli

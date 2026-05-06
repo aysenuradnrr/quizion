@@ -286,9 +286,9 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--td);overfl
       <a class="ds-ni" href="#" onclick="toast('📊 Performans modülü yakında!','warn');return false">
         <div class="ds-nicon">📊</div>Performans Paneli
       </a>
-      <a class="ds-ni" href="#" onclick="toast('📚 Konu takibi yakında!','warn');return false">
-        <div class="ds-nicon">📚</div>Konu Takibi
-        <span class="ds-nbdg">3</span>
+      <a class="ds-ni" href="{{ route('ogrenci.test.baslat') }}">
+          <div class="ds-nicon">🚀</div>
+          Test Çözmeye Başla
       </a>
       <a class="ds-ni" href="#" onclick="toast('🏅 Rozetler yakında!','warn');return false">
         <div class="ds-nicon">🏅</div>Rozetlerim
@@ -338,9 +338,17 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--td);overfl
           <p>Bugün de harika bir gün! Öğrenmeye devam et.</p>
         </div>
         <div class="dm-acts">
-          <button type="button" class="btn-ds" onclick="toast('📊 Raporlar yakında!','info')">📊 Raporlarım</button>
-          <button type="button" class="btn-dp" onclick="toast('✍️ Sınav modülü yakında!','ok')">✍️ Sınava Gir</button>
-        </div>
+            <a href="{{ route('ogrenci.test.baslat') }}"
+              style="text-decoration:none;">
+               <button type="button" class="btn-dp">
+                   🚀 Test Çözmeye Başla
+               </button>
+            </a>
+            <button type="button" class="btn-ds"
+                onclick="toast('📊 Raporlar yakında!','info')">
+                📊 Raporlarım
+            </button>
+</div>
       </div>
 
       <!-- Hoşgeldin Kartı -->
