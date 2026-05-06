@@ -1,958 +1,527 @@
-{{--
-    ============================================================
-    Quizion – Öğretmen Paneli
-    ogretmen.blade.php
-    Tailwind CSS ile oluşturulmuştur. Ana şablondan extend eder.
-    ============================================================
---}}
-
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Öğretmen Paneli – Quizion</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Quizion – Öğretmen Paneli</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Baloo+2:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --pu:#3d1a8e;--pm:#6c35de;--pl:#9b6dff;--pp:#ede7ff;
+  --or:#f5a623;--gr:#3acaaa;--re:#f04848;--bl:#3b82f6;
+  --td:#1e0e4b;--tm:#5a4a7a;--tl:#8878aa;
+  --bg:#f4f0ff;--bs:#f8f4ff;--bd:#ede7ff;
+  --nh:64px;--sw:290px;
+  --tr:.3s cubic-bezier(.4,0,.2,1);
+  --gb:rgba(255,255,255,.12);--gbd:rgba(255,255,255,.22);
+  --s1:0 2px 12px rgba(61,26,142,.07);
+  --s2:0 8px 28px rgba(61,26,142,.13);
+  --s3:0 20px 60px rgba(61,26,142,.22);
+}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--td);overflow-x:hidden;margin:0}
 
-    {{-- Tailwind CDN (üretimde compile edilmiş build kullanın) --}}
-    <script src="https://cdn.tailwindcss.com"></script>
+/* NAV */
+.nav{
+  position:fixed;top:0;left:0;right:0;height:var(--nh);
+  background:rgba(20,80,60,.96);
+  backdrop-filter:blur(22px);
+  border-bottom:1px solid rgba(90,200,160,.2);
+  display:flex;align-items:center;padding:0 28px;gap:12px;
+  z-index:1000;box-shadow:0 4px 28px rgba(0,40,20,.45)
+}
+.nav-logo{font-family:'Baloo 2',cursive;font-weight:800;font-size:1.6rem;color:#fff;letter-spacing:-.5px;flex-shrink:0;cursor:pointer;text-decoration:none}
+.nav-logo span{color:var(--or)}
+.nav-right{display:flex;align-items:center;gap:10px;margin-left:auto;flex-shrink:0}
+.notif-btn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);color:#fff;width:36px;height:36px;border-radius:10px;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--tr);position:relative}
+.notif-btn:hover{background:rgba(255,255,255,.2)}
+.notif-dot{position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;background:var(--re);border:2px solid rgba(20,80,60,.96)}
+.dash-user-chip{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:10px;padding:5px 12px 5px 7px;cursor:pointer;transition:var(--tr)}
+.dash-user-chip:hover{background:rgba(255,255,255,.18)}
+.duc-av{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#5cc8a8,#1da18a);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem;color:#fff}
+.duc-name{font-size:.8rem;font-weight:700;color:#fff}
+.btn-exit{background:rgba(255,100,100,.2);border:1px solid rgba(255,100,100,.3);color:#ffb3b3;font-family:'Nunito',sans-serif;font-weight:700;font-size:.8rem;padding:6px 13px;border-radius:9px;cursor:pointer;transition:var(--tr)}
+.btn-exit:hover{background:rgba(255,100,100,.3)}
 
-    {{-- Google Fonts --}}
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet"/>
+/* LAYOUT */
+#vDash{padding-top:var(--nh);background:var(--bg);min-height:100vh}
+.dl{display:grid;grid-template-columns:var(--sw) 1fr;min-height:calc(100vh - var(--nh))}
 
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        nunito: ['Nunito', 'sans-serif'],
-                        baloo:  ['Baloo 2', 'cursive'],
-                    },
-                    colors: {
-                        purple: {
-                            950: '#0d0330',
-                            900: '#1e0e4b',
-                            800: '#3d1a8e',
-                            700: '#5a20c8',
-                            600: '#6c35de',
-                            500: '#7c3aed',
-                            400: '#9b6dff',
-                            100: '#ede7ff',
-                            50:  '#f8f4ff',
-                        },
-                        gold: {
-                            500: '#f5a623',
-                            600: '#e08c00',
-                            400: '#ffc04d',
-                        },
-                    },
-                    boxShadow: {
-                        'card':   '0 2px 16px rgba(61,26,142,0.09)',
-                        'card-hover': '0 10px 32px rgba(61,26,142,0.18)',
-                        'glow':   '0 0 24px rgba(108,53,222,0.35)',
-                        'gold':   '0 6px 20px rgba(245,166,35,0.4)',
-                    },
-                },
-            },
-        };
-    </script>
+/* SIDEBAR */
+.ds{
+  background:linear-gradient(180deg,#0d4a38 0%,#1a6b52 100%);
+  border-right:1px solid rgba(90,200,160,.12);
+  padding:20px 0;
+  position:sticky;top:var(--nh);
+  height:calc(100vh - var(--nh));
+  overflow-y:auto;
+  display:flex;flex-direction:column
+}
+.ds::-webkit-scrollbar{width:3px}
+.ds::-webkit-scrollbar-thumb{background:rgba(255,255,255,.14);border-radius:3px}
+.ds-uc{margin:0 14px 16px;padding:14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:15px}
+.ds-top{display:flex;align-items:center;gap:11px;margin-bottom:12px}
+.ds-av{width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,#5cc8a8,#1da18a);display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:900;color:#fff;flex-shrink:0}
+.ds-name{font-weight:800;font-size:.92rem;color:#fff}
+.ds-grade{font-size:.72rem;color:rgba(255,255,255,.58);font-weight:600;margin-top:2px}
+.ds-xp-r{display:flex;justify-content:space-between;font-size:.7rem;font-weight:700;color:rgba(255,255,255,.52);margin-bottom:5px}
+.ds-xp-b{background:rgba(255,255,255,.13);border-radius:8px;height:6px;overflow:hidden}
+.ds-xp-f{height:100%;border-radius:8px;background:linear-gradient(90deg,#5cc8a8,#1da18a)}
+.ds-lbl{font-size:.66rem;font-weight:800;letter-spacing:1.1px;text-transform:uppercase;color:rgba(255,255,255,.33);padding:10px 18px 5px}
+.ds-ni{display:flex;align-items:center;gap:10px;padding:10px 16px;color:rgba(255,255,255,.75);text-decoration:none;font-weight:700;font-size:.88rem;cursor:pointer;transition:var(--tr);margin:1px 10px;border-radius:11px;position:relative}
+.ds-ni:hover{background:rgba(255,255,255,.1);color:#fff}
+.ds-ni.ac{background:linear-gradient(135deg,rgba(92,200,168,.2),rgba(29,161,138,.1));color:#fff;border:1px solid rgba(92,200,168,.3)}
+.ds-ni.ac::before{content:'';position:absolute;left:0;top:20%;bottom:20%;width:3px;background:#5cc8a8;border-radius:2px}
+.ds-nicon{width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;transition:var(--tr)}
+.ds-ni:hover .ds-nicon,.ds-ni.ac .ds-nicon{background:rgba(255,255,255,.16)}
+.ds-nbdg{background:#5cc8a8;color:#fff;font-size:.65rem;font-weight:800;min-width:18px;height:18px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 4px;margin-left:auto}
+.ds-nd{height:1px;background:rgba(255,255,255,.07);margin:8px 14px}
+.ds-bot{margin-top:auto;padding:14px}
+.ds-qbtn{width:100%;background:linear-gradient(135deg,#5cc8a8,#1da18a);border:none;color:#fff;font-family:'Nunito',sans-serif;font-weight:800;font-size:.88rem;padding:11px;border-radius:12px;cursor:pointer;transition:var(--tr);box-shadow:0 4px 14px rgba(29,161,138,.34)}
+.ds-qbtn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(29,161,138,.5)}
+.ds-logout-btn{display:flex;align-items:center;gap:10px;padding:10px 16px;color:rgba(255,255,255,.75);font-family:'Nunito',sans-serif;font-weight:700;font-size:.88rem;cursor:pointer;transition:var(--tr);margin:1px 10px;border-radius:11px;background:none;border:none;width:calc(100% - 20px);text-align:left}
+.ds-logout-btn:hover{background:rgba(255,100,100,.15);color:#ffb3b3}
 
-    <style>
-        * { box-sizing: border-box; }
-        body { font-family: 'Nunito', sans-serif; }
+/* MAIN */
+.dm{padding:28px 30px;overflow-y:auto}
+.dm-wel{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;flex-wrap:wrap;gap:14px}
+.dm-wel h2{font-family:'Baloo 2',cursive;font-weight:800;font-size:1.55rem;color:var(--td)}
+.dm-wel p{color:var(--tm);font-size:.87rem;margin-top:3px}
+.dm-acts{display:flex;gap:10px}
+.btn-dp{background:linear-gradient(135deg,#3acaaa,#1da18a);border:none;color:#fff;font-family:'Nunito',sans-serif;font-weight:800;font-size:.87rem;padding:10px 20px;border-radius:11px;cursor:pointer;transition:var(--tr);box-shadow:0 4px 14px rgba(58,202,170,.28)}
+.btn-dp:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(58,202,170,.4)}
+.btn-ds{background:#fff;border:1.5px solid var(--bd);color:var(--tm);font-family:'Nunito',sans-serif;font-weight:700;font-size:.87rem;padding:10px 20px;border-radius:11px;cursor:pointer;transition:var(--tr)}
+.btn-ds:hover{border-color:#3acaaa;color:#1da18a}
 
-        /* ── Scrollbar ── */
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #9b6dff55; border-radius: 4px; }
+/* TEACHER BAR */
+.teacher-bar{background:linear-gradient(135deg,rgba(58,202,170,.1),rgba(29,161,138,.05));border:1px solid rgba(58,202,170,.2);border-radius:14px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:12px}
+.teacher-bar-icon{font-size:1.6rem;flex-shrink:0}
+.teacher-bar-t{font-weight:800;font-size:.95rem;color:#0f7a66}
+.teacher-bar-d{font-size:.82rem;color:var(--tm);margin-top:2px}
 
-        /* ── Sidebar ── */
-        .sidebar-item {
-            display: flex; align-items: center; gap: 11px;
-            padding: 10px 14px; border-radius: 12px;
-            color: rgba(255,255,255,0.65);
-            font-weight: 700; font-size: 0.875rem;
-            transition: all .22s ease; cursor: pointer;
-            text-decoration: none;
-        }
-        .sidebar-item:hover  { background: rgba(255,255,255,0.1); color: #fff; transform: translateX(3px); }
-        .sidebar-item.active { background: rgba(245,166,35,0.18); color: #f5a623; border-left: 3px solid #f5a623; padding-left: 11px; }
+/* STAT CARDS */
+.dsr{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.dsc{background:#fff;border-radius:16px;padding:18px;border:1px solid var(--bd);box-shadow:var(--s1);transition:var(--tr);position:relative;overflow:hidden}
+.dsc:hover{transform:translateY(-3px);box-shadow:var(--s2)}
+.dsc::after{content:'';position:absolute;top:-20px;right:-20px;width:70px;height:70px;border-radius:50%;opacity:.11}
+.dsc.c1::after{background:#3acaaa}.dsc.c2::after{background:var(--or)}.dsc.c3::after{background:var(--pm)}.dsc.c4::after{background:var(--bl)}
+.dsc-ico{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;margin-bottom:12px}
+.dsc.c1 .dsc-ico{background:rgba(58,202,170,.1);color:#1da18a}
+.dsc.c2 .dsc-ico{background:rgba(245,166,35,.1);color:var(--or)}
+.dsc.c3 .dsc-ico{background:rgba(108,53,222,.1);color:var(--pm)}
+.dsc.c4 .dsc-ico{background:rgba(59,130,246,.1);color:var(--bl)}
+.dsc-val{font-family:'Baloo 2',cursive;font-weight:800;font-size:1.65rem;color:var(--td);line-height:1}
+.dsc-lbl{font-size:.78rem;color:var(--tm);font-weight:600;margin-top:4px}
+.dsc-chg{font-size:.72rem;font-weight:700;margin-top:5px}
+.dsc-chg.up{color:var(--gr)}.dsc-chg.nu{color:var(--tl)}
 
-        /* ── Stat card ── */
-        .stat-card { transition: transform .25s, box-shadow .25s; }
-        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(61,26,142,0.2); }
+/* CLASS GRID */
+.class-section{margin-bottom:20px}
+.class-section-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.class-section-title{font-family:'Baloo 2',cursive;font-weight:700;font-size:1rem;color:var(--td)}
+.dc-lnk{font-size:.78rem;font-weight:700;color:#1da18a;cursor:pointer;text-decoration:none}
+.dc-lnk:hover{text-decoration:underline}
+.class-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.class-card{background:#fff;border:1px solid var(--bd);border-radius:14px;padding:16px;transition:var(--tr);cursor:pointer}
+.class-card:hover{transform:translateY(-2px);box-shadow:var(--s2);border-color:#3acaaa}
+.cc-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.cc-name{font-weight:800;font-size:.95rem;color:var(--td)}
+.cc-cnt{font-size:.75rem;font-weight:700;background:rgba(58,202,170,.1);color:#1da18a;padding:2px 8px;border-radius:8px}
+.cc-sub{font-size:.78rem;color:var(--tl);font-weight:600;margin-bottom:10px}
+.cc-prog{background:var(--bd);border-radius:8px;height:5px;overflow:hidden}
+.cc-fill{height:100%;border-radius:8px;background:linear-gradient(90deg,#5cc8a8,#1da18a)}
+.cc-meta{font-size:.72rem;color:var(--tm);font-weight:600;margin-top:6px}
+.cc-empty{text-align:center;padding:30px;color:var(--tl)}
+.cc-empty-icon{font-size:2rem;margin-bottom:8px}
+.cc-empty-t{font-weight:700;font-size:.88rem}
+.cc-empty-s{font-size:.78rem;margin-top:4px}
+.btn-add-class{background:linear-gradient(135deg,#3acaaa,#1da18a);border:none;color:#fff;font-family:'Nunito',sans-serif;font-weight:800;font-size:.84rem;padding:9px 18px;border-radius:10px;cursor:pointer;transition:var(--tr)}
+.btn-add-class:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(58,202,170,.4)}
 
-        /* ── Pulse badge ── */
-        @keyframes pulse-badge {
-            0%,100% { box-shadow: 0 0 0 0 rgba(245,166,35,.55); }
-            60%      { box-shadow: 0 0 0 8px rgba(245,166,35,0); }
-        }
-        .pulse-gold { animation: pulse-badge 2s infinite; }
+/* MID GRID */
+.dmid{display:grid;grid-template-columns:1fr 1.4fr;gap:16px;margin-bottom:20px}
+.dc{background:#fff;border-radius:16px;padding:20px;border:1px solid var(--bd);box-shadow:var(--s1)}
+.dc-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.dc-title{font-family:'Baloo 2',cursive;font-weight:700;font-size:1rem;color:var(--td)}
 
-        /* ── Shimmer row ── */
-        @keyframes fadeInUp {
-            from { opacity:0; transform:translateY(10px); }
-            to   { opacity:1; transform:translateY(0); }
-        }
-        .fade-in { animation: fadeInUp .4s ease forwards; }
+/* STUDENT PROGRESS */
+.spi{display:flex;align-items:center;gap:12px;margin-bottom:13px}
+.spi-em{font-size:1.2rem;flex-shrink:0;width:36px;height:36px;border-radius:9px;background:rgba(58,202,170,.1);display:flex;align-items:center;justify-content:center;color:#1da18a;font-weight:800}
+.spi-info{flex:1;min-width:0}
+.spi-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+.spi-nm{font-weight:700;font-size:.83rem;color:var(--td)}
+.spi-pct{font-weight:800;font-size:.78rem;color:#1da18a}
+.spi-bar{background:var(--bd);border-radius:8px;height:7px;overflow:hidden}
+.spi-fill{height:100%;border-radius:8px;transition:width 1.2s ease}
+.spi-empty{text-align:center;padding:20px;color:var(--tl);font-size:.85rem;font-weight:600}
 
-        /* ── Tab active ── */
-        .tab-btn.active { background: #6c35de; color: #fff; }
+/* WEEKLY CHART */
+.wca{display:flex;align-items:flex-end;gap:8px;height:100px;padding-top:8px}
+.wb-w{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.wb{width:100%;border-radius:5px 5px 0 0;min-height:4px;cursor:pointer;transition:var(--tr)}
+.wb:hover{filter:brightness(1.15)}
+.wb-d{font-size:.67rem;font-weight:700;color:var(--tl)}
+.wb-v{font-size:.67rem;font-weight:800;color:var(--tm)}
 
-        /* ── Modal backdrop ── */
-        .modal-backdrop { backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+/* AI SUGGESTION */
+.ai-sug{background:linear-gradient(135deg,rgba(58,202,170,.07),rgba(29,161,138,.04));border:1.5px solid rgba(58,202,170,.2);border-radius:16px;padding:16px;display:flex;gap:12px;align-items:flex-start;cursor:pointer;transition:var(--tr);margin-top:14px}
+.ai-sug:hover{border-color:#3acaaa;transform:translateY(-2px);box-shadow:var(--s2)}
+.ai-ico{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#3acaaa,#1da18a);display:flex;align-items:center;justify-content:center;font-size:1.25rem;flex-shrink:0}
+.ai-txt h4{font-weight:800;font-size:.9rem;color:#0f7a66;margin-bottom:3px}
+.ai-txt p{font-size:.81rem;color:var(--tm);line-height:1.6}
+.ai-act{display:inline-flex;align-items:center;gap:5px;margin-top:7px;font-size:.77rem;font-weight:800;color:#1da18a}
 
-        /* ── Tooltip ── */
-        [data-tip]::after {
-            content: attr(data-tip);
-            position: absolute; bottom: calc(100% + 6px); left: 50%;
-            transform: translateX(-50%);
-            background: #1e0e4b; color: #fff; font-size: .7rem; font-weight: 700;
-            padding: 4px 10px; border-radius: 6px; white-space: nowrap;
-            pointer-events: none; opacity: 0; transition: opacity .2s;
-        }
-        [data-tip]:hover::after { opacity: 1; }
-    </style>
+/* BOTTOM GRID */
+.dbot{display:grid;grid-template-columns:1.1fr 1fr;gap:16px;margin-bottom:20px}
+
+/* QUIZ ITEMS */
+.qi{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--bd)}
+.qi:last-child{border-bottom:none}
+.qi-ico{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.15rem;flex-shrink:0}
+.qi-info{flex:1;min-width:0}
+.qi-name{font-weight:700;font-size:.84rem;color:var(--td);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qi-meta{font-size:.72rem;color:var(--tl);font-weight:600;margin-top:2px}
+.qi-sc{text-align:right}
+.qi-scv{font-family:'Baloo 2',cursive;font-weight:800;font-size:1rem}
+.qi-scv.good{color:var(--gr)}.qi-scv.ok{color:var(--or)}.qi-scv.bad{color:var(--re)}
+.qi-scl{font-size:.68rem;font-weight:600;color:var(--tl)}
+.qi-empty{text-align:center;padding:20px;color:var(--tl);font-size:.85rem;font-weight:600}
+
+/* QUICK ACTIONS */
+.quick-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.qa-btn{background:#fff;border:1.5px solid var(--bd);border-radius:13px;padding:16px;cursor:pointer;transition:var(--tr);text-align:left;font-family:'Nunito',sans-serif}
+.qa-btn:hover{border-color:#3acaaa;transform:translateY(-2px);box-shadow:var(--s2)}
+.qa-icon{font-size:1.5rem;margin-bottom:8px}
+.qa-title{font-weight:800;font-size:.88rem;color:var(--td);margin-bottom:3px}
+.qa-desc{font-size:.75rem;color:var(--tl);font-weight:600}
+
+/* WELCOME CARD */
+.welcome-card{background:linear-gradient(135deg,rgba(58,202,170,.08),rgba(29,161,138,.04));border:1.5px solid rgba(58,202,170,.2);border-radius:16px;padding:24px;margin-bottom:20px;display:flex;align-items:center;gap:16px}
+.wc-icon{font-size:2.5rem;flex-shrink:0}
+.wc-txt h3{font-family:'Baloo 2',cursive;font-weight:800;font-size:1.1rem;color:#0f7a66;margin-bottom:4px}
+.wc-txt p{font-size:.85rem;color:var(--tm);line-height:1.6}
+
+/* TOAST */
+.toast-wrap{position:fixed;bottom:22px;right:22px;z-index:3000;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{background:#fff;border-radius:13px;padding:12px 16px;display:flex;align-items:center;gap:9px;box-shadow:var(--s3);border-left:4px solid #3acaaa;font-weight:700;font-size:.84rem;color:var(--td);animation:tin .35s ease forwards;max-width:300px;pointer-events:all}
+.toast.ok{border-color:var(--gr)}.toast.err{border-color:var(--re)}.toast.warn{border-color:var(--or)}
+@keyframes tin{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:translateX(0)}}
+@keyframes tout{to{opacity:0;transform:translateX(18px)}}
+.toast.out{animation:tout .28s ease forwards}
+
+@media(max-width:900px){
+  .dl{grid-template-columns:1fr}
+  .ds{display:none}
+  .dsr{grid-template-columns:1fr 1fr}
+  .dmid{grid-template-columns:1fr}
+  .dbot{grid-template-columns:1fr}
+  .quick-actions{grid-template-columns:1fr}
+}
+@media(max-width:640px){
+  .dsr{grid-template-columns:1fr 1fr}
+  .dm{padding:16px}
+}
+</style>
 </head>
+<body>
 
-<body class="bg-purple-50 font-nunito text-purple-900 min-h-screen">
+<div class="toast-wrap" id="tw"></div>
 
-{{-- ════════════════════════════════════════════════════
-     DUYURU BANDI
-════════════════════════════════════════════════════ --}}
-<div class="bg-purple-800 text-white text-xs font-bold overflow-hidden h-8 flex items-center">
-    <div class="whitespace-nowrap animate-[marquee_30s_linear_infinite] flex gap-20"
-         style="animation: marquee 30s linear infinite;">
-        <span>📢 Aktif Sınav: <span class="text-gold-400">{{ $aktifSinavSayisi ?? 3 }}</span> sınav şu an devam ediyor</span>
-        <span>🏆 Bu haftanın en başarılı sınıfı: <span class="text-gold-400">{{ $enBasariliSinif ?? '7-A' }}</span></span>
-        <span>📝 Yeni soru ekleyerek öğrencilerini motive et!</span>
-        <span>📢 Aktif Sınav: <span class="text-gold-400">{{ $aktifSinavSayisi ?? 3 }}</span> sınav şu an devam ediyor</span>
-        <span>🏆 Bu haftanın en başarılı sınıfı: <span class="text-gold-400">{{ $enBasariliSinif ?? '7-A' }}</span></span>
-        <span>📝 Yeni soru ekleyerek öğrencilerini motive et!</span>
+<!-- NAVBAR -->
+<nav class="nav">
+  <a class="nav-logo" href="/">Quiz<span>ion</span></a>
+  <div class="nav-right">
+    <button class="notif-btn" onclick="toast('🔔 2 yeni bildiriminiz var!','info')">
+      🔔<span class="notif-dot"></span>
+    </button>
+    <div class="dash-user-chip">
+      <div class="duc-av">{{ strtoupper(substr($user->name, 0, 1)) }}</div>
+      <span class="duc-name">{{ $user->name }}</span>
     </div>
-</div>
-<style>@keyframes marquee{ from{transform:translateX(0)} to{transform:translateX(-50%)} }</style>
+    <form method="POST" action="{{ route('logout') }}" style="display:inline;margin:0">
+      @csrf
+      <button type="submit" class="btn-exit">Çıkış</button>
+    </form>
+  </div>
+</nav>
 
-{{-- ════════════════════════════════════════════════════
-     LAYOUT WRAPPER
-════════════════════════════════════════════════════ --}}
-<div class="flex min-h-screen">
+<!-- DASHBOARD -->
+<div id="vDash">
+  <div class="dl">
 
-    {{-- ─────────────────────────────────────
-         SIDEBAR
-    ───────────────────────────────────── --}}
-    <aside id="sidebar"
-           class="fixed inset-y-0 left-0 z-40 w-64 flex flex-col
-                  bg-gradient-to-b from-purple-900 via-purple-800 to-purple-900
-                  shadow-2xl transition-transform duration-300 pt-8"
-           style="top:32px">
-
-        {{-- Logo --}}
-        <div class="px-5 mb-8">
-            <a href="/" class="flex items-center gap-2.5">
-                <div class="w-9 h-9 rounded-xl bg-purple-700 flex items-center justify-center shadow-glow flex-shrink-0">
-                    <svg viewBox="0 0 36 36" fill="none" class="w-7 h-7">
-                        <path d="M10 24 L18 12 L26 24" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        <circle cx="18" cy="12" r="2.5" fill="#f5a623"/>
-                        <path d="M13 20 L23 20" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" stroke-linecap="round"/>
-                        <circle cx="10" cy="24" r="1.8" fill="white" opacity=".85"/>
-                        <circle cx="26" cy="24" r="1.8" fill="white" opacity=".85"/>
-                    </svg>
-                </div>
-                <span class="font-baloo font-800 text-xl text-white">
-                    <span class="text-gold-500">Q</span>uizion
-                </span>
-            </a>
+    <!-- ═══ SIDEBAR ═══ -->
+    <aside class="ds">
+      <div class="ds-uc">
+        <div class="ds-top">
+          <div class="ds-av">{{ strtoupper(substr($user->name, 0, 1)) }}</div>
+          <div>
+            <div class="ds-name">{{ $user->name }} {{ $user->surname }}</div>
+            <div class="ds-grade">Öğretmen · {{ $user->branch }}</div>
+          </div>
         </div>
-
-        {{-- Öğretmen Profil Kartı --}}
-        <div class="mx-4 mb-6 p-3.5 rounded-2xl bg-white/10 border border-white/15">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-gold-500 to-orange-500 flex items-center justify-content-center text-white font-black text-lg flex items-center justify-center shadow-gold flex-shrink-0">
-                    {{ mb_substr($ogretmen->ad ?? 'Ö', 0, 1) }}
-                </div>
-                <div class="min-w-0">
-                    <p class="text-white font-bold text-sm truncate">{{ $ogretmen->ad_soyad ?? 'Öğretmen Adı' }}</p>
-                    <p class="text-white/55 text-xs font-semibold">{{ $ogretmen->brans ?? 'Matematik' }} Öğretmeni</p>
-                </div>
-            </div>
+        <div class="ds-xp-r">
+          <span>🏅 Uzman Öğretmen</span>
+          <span>{{ $user->xp }} XP</span>
         </div>
-
-        {{-- Menü --}}
-        <nav class="flex-1 px-3 space-y-1 overflow-y-auto">
-            <p class="text-white/30 text-xs font-black uppercase tracking-widest px-3 mb-2">Ana Menü</p>
-
-            <a href="{{ route('ogretmen.dashboard') }}" class="sidebar-item {{ request()->routeIs('ogretmen.dashboard') ? 'active' : '' }}">
-                <span class="text-lg">🏠</span> Dashboard
-            </a>
-            <a href="{{ route('ogretmen.soru-bankasi') }}" class="sidebar-item {{ request()->routeIs('ogretmen.soru*') ? 'active' : '' }}">
-                <span class="text-lg">🧠</span> Soru Bankası
-                @if(($bekleyenSoru ?? 0) > 0)
-                    <span class="ml-auto bg-gold-500 text-white text-xs font-black px-2 py-0.5 rounded-full">{{ $bekleyenSoru }}</span>
-                @endif
-            </a>
-            <a href="{{ route('ogretmen.sinavlarim') }}" class="sidebar-item {{ request()->routeIs('ogretmen.sinav*') ? 'active' : '' }}">
-                <span class="text-lg">📋</span> Sınavlarım
-            </a>
-            <a href="{{ route('ogretmen.ogrenci-raporlari') }}" class="sidebar-item {{ request()->routeIs('ogretmen.rapor*') ? 'active' : '' }}">
-                <span class="text-lg">📊</span> Öğrenci Raporları
-            </a>
-
-            <div class="h-px bg-white/10 my-3"></div>
-            <p class="text-white/30 text-xs font-black uppercase tracking-widest px-3 mb-2">Araçlar</p>
-
-            <a href="{{ route('ogretmen.sinif-listesi') }}" class="sidebar-item">
-                <span class="text-lg">👥</span> Sınıf Listesi
-            </a>
-            <a href="{{ route('ogretmen.takvim') }}" class="sidebar-item">
-                <span class="text-lg">📅</span> Sınav Takvimi
-            </a>
-            <a href="{{ route('ogretmen.rozetler') }}" class="sidebar-item">
-                <span class="text-lg">🏅</span> Rozet Yönetimi
-            </a>
-
-            <div class="h-px bg-white/10 my-3"></div>
-
-            <a href="{{ route('ogretmen.ayarlar') }}" class="sidebar-item">
-                <span class="text-lg">⚙️</span> Ayarlar
-            </a>
-            <a href="{{ route('logout') }}" class="sidebar-item hover:bg-red-500/20 hover:text-red-300"
-               onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                <span class="text-lg">🚪</span> Çıkış Yap
-            </a>
-            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">@csrf</form>
-        </nav>
-
-        {{-- Alt bilgi --}}
-        <div class="p-4 border-t border-white/10">
-            <p class="text-white/30 text-xs text-center">Quizion © {{ date('Y') }} · Hitit Üniversitesi</p>
+        <div class="ds-xp-b">
+          <div class="ds-xp-f" style="width:{{ min(100, ($user->xp % 100)) }}%"></div>
         </div>
+      </div>
+
+      <div class="ds-lbl">🧠 Öğretmen Paneli</div>
+      <a class="ds-ni ac" href="{{ route('ogretmen.dashboard') }}">
+        <div class="ds-nicon">🏠</div>Anasayfa
+      </a>
+      <a class="ds-ni" href="#" onclick="toast('🧠 Soru üretim merkezi yakında!','warn');return false">
+        <div class="ds-nicon">🧠</div>Soru Üretim Merkezi
+      </a>
+      <a class="ds-ni" href="#" onclick="toast('📋 Sınav mimarı yakında!','warn');return false">
+        <div class="ds-nicon">📋</div>Sınav Mimarı
+        <span class="ds-nbdg">1</span>
+      </a>
+      <a class="ds-ni" href="#" onclick="toast('📊 Analiz odası yakında!','warn');return false">
+        <div class="ds-nicon">📊</div>Analiz Odası
+      </a>
+      <a class="ds-ni" href="#" onclick="toast('🏫 Sınıf yönetimi yakında!','warn');return false">
+        <div class="ds-nicon">🏫</div>Sınıf Yönetimi
+      </a>
+
+      <div class="ds-nd"></div>
+      <div class="ds-lbl">👥 Öğrenciler</div>
+      <a class="ds-ni" href="#" onclick="toast('📈 Öğrenci raporları yakında!','warn');return false">
+        <div class="ds-nicon">📈</div>Öğrenci Raporları
+        <span class="ds-nbdg">12</span>
+      </a>
+      <a class="ds-ni" href="#" onclick="toast('🎯 Ödev verme yakında!','warn');return false">
+        <div class="ds-nicon">🎯</div>Ödev Ver
+      </a>
+      <a class="ds-ni" href="#" onclick="toast('⚡ Canlı yarışma yakında!','warn');return false">
+        <div class="ds-nicon">⚡</div>Canlı Yarışma Başlat
+      </a>
+
+      <div class="ds-nd"></div>
+      <div class="ds-lbl">⚙️ Hesabım</div>
+      <a class="ds-ni" href="{{ route('profile.edit') }}">
+        <div class="ds-nicon">👤</div>Profil Ayarları
+      </a>
+      <a class="ds-ni" href="#" onclick="toast('🔔 2 yeni bildiriminiz var!','info');return false">
+        <div class="ds-nicon">🔔</div>Bildirimler
+        <span class="ds-nbdg">2</span>
+      </a>
+
+      <div class="ds-bot">
+        <form method="POST" action="{{ route('logout') }}" style="margin-bottom:10px">
+          @csrf
+          <button type="submit" class="ds-logout-btn">
+            <div class="ds-nicon">🚪</div>Çıkış Yap
+          </button>
+        </form>
+        <button type="button" class="ds-qbtn" onclick="toast('➕ Sınav oluşturma yakında!','ok')">
+          ➕ Yeni Sınav Oluştur
+        </button>
+      </div>
     </aside>
 
-    {{-- ─────────────────────────────────────
-         MAIN CONTENT
-    ───────────────────────────────────── --}}
-    <div class="flex-1 flex flex-col ml-64">
+    <!-- ═══ MAIN CONTENT ═══ -->
+    <main class="dm">
 
-        {{-- ── NAVBAR ── --}}
-        <header class="sticky top-8 z-30 bg-white/90 backdrop-blur-xl border-b border-purple-100
-                        flex items-center justify-between px-8 h-16 shadow-sm">
+      <!-- Başlık -->
+      <div class="dm-wel">
+        <div>
+          <h2>Merhaba, {{ $user->name }}! 👩‍🏫</h2>
+          <p>Öğretmen panelinize hoş geldiniz. Branş: <strong>{{ $user->branch }}</strong></p>
+        </div>
+        <div class="dm-acts">
+          <button type="button" class="btn-ds" onclick="toast('📊 Analiz odası yakında!','info')">📊 Analiz Odası</button>
+          <button type="button" class="btn-dp" onclick="toast('➕ Sınav oluşturma yakında!','ok')">➕ Sınav Oluştur</button>
+        </div>
+      </div>
 
-            {{-- Sol: Sayfa başlığı --}}
-            <div class="flex items-center gap-3">
-                <button onclick="document.getElementById('sidebar').classList.toggle('-translate-x-full')"
-                        class="w-9 h-9 rounded-xl bg-purple-50 border border-purple-100
-                               flex items-center justify-center text-purple-600
-                               hover:bg-purple-100 transition lg:hidden">
-                    ☰
-                </button>
-                <div>
-                    <h1 class="font-baloo font-bold text-lg text-purple-900 leading-tight" id="pageTitle">Dashboard</h1>
-                    <p class="text-purple-400 text-xs font-semibold hidden sm:block">{{ now()->format('d F Y, l') }}</p>
-                </div>
+      <!-- Teacher Bar -->
+      <div class="teacher-bar">
+        <div class="teacher-bar-icon">🏫</div>
+        <div>
+          <div class="teacher-bar-t">Öğretmen Paneline Hoş Geldiniz, {{ $user->name }} Hoca!</div>
+          <div class="teacher-bar-d">Branş: {{ $user->branch }} · Sınıf yönetimi ve sınav modülleri yakında aktif olacak.</div>
+        </div>
+      </div>
+
+      <!-- Hoşgeldin Kartı -->
+      <div class="welcome-card">
+        <div class="wc-icon">🎓</div>
+        <div class="wc-txt">
+          <h3>Quizion Öğretmen Paneli Hazır!</h3>
+          <p>
+            Hesabınız başarıyla oluşturuldu.
+            Sınıf ekleme, sınav oluşturma ve öğrenci takip modülleri çok yakında aktif olacak.
+            Şimdilik profilinizi düzenleyebilirsiniz.
+          </p>
+        </div>
+      </div>
+
+      <!-- STAT CARDS -->
+      <div class="dsr">
+        <div class="dsc c1">
+          <div class="dsc-ico">🏫</div>
+          <div class="dsc-val">0</div>
+          <div class="dsc-lbl">Aktif Sınıf</div>
+          <div class="dsc-chg nu">Sınıf ekleyin</div>
+        </div>
+        <div class="dsc c2">
+          <div class="dsc-ico">👥</div>
+          <div class="dsc-val">0</div>
+          <div class="dsc-lbl">Toplam Öğrenci</div>
+          <div class="dsc-chg nu">Henüz öğrenci yok</div>
+        </div>
+        <div class="dsc c3">
+          <div class="dsc-ico">📋</div>
+          <div class="dsc-val">0</div>
+          <div class="dsc-lbl">Toplam Sınav</div>
+          <div class="dsc-chg nu">İlk sınavı oluşturun</div>
+        </div>
+        <div class="dsc c4">
+          <div class="dsc-ico">📈</div>
+          <div class="dsc-val">%0</div>
+          <div class="dsc-lbl">Ort. Başarı</div>
+          <div class="dsc-chg nu">Veri bekleniyor</div>
+        </div>
+      </div>
+
+      <!-- HIZLI İŞLEMLER -->
+      <div style="margin-bottom:6px">
+        <div class="class-section-hd">
+          <div class="class-section-title">⚡ Hızlı İşlemler</div>
+        </div>
+      </div>
+      <div class="quick-actions" style="margin-bottom:20px">
+        <button type="button" class="qa-btn" onclick="toast('🧠 Soru üretim merkezi yakında!','warn')">
+          <div class="qa-icon">🧠</div>
+          <div class="qa-title">Soru Üret</div>
+          <div class="qa-desc">Yapay zeka ile otomatik soru oluştur</div>
+        </button>
+        <button type="button" class="qa-btn" onclick="toast('📋 Sınav oluşturma yakında!','warn')">
+          <div class="qa-icon">📋</div>
+          <div class="qa-title">Sınav Oluştur</div>
+          <div class="qa-desc">Öğrencilerin için yeni sınav hazırla</div>
+        </button>
+        <button type="button" class="qa-btn" onclick="toast('🏫 Sınıf ekleme yakında!','warn')">
+          <div class="qa-icon">🏫</div>
+          <div class="qa-title">Sınıf Ekle</div>
+          <div class="qa-desc">Yeni sınıf oluştur ve öğrenci ekle</div>
+        </button>
+        <button type="button" class="qa-btn" onclick="toast('⚡ Canlı yarışma yakında!','warn')">
+          <div class="qa-icon">⚡</div>
+          <div class="qa-title">Canlı Yarışma</div>
+          <div class="qa-desc">Anlık sınıf yarışması başlat</div>
+        </button>
+      </div>
+
+      <!-- SINIFLARIM -->
+      <div class="class-section">
+        <div class="class-section-hd">
+          <div class="class-section-title">🏫 Sınıflarım</div>
+          <a class="dc-lnk" href="#" onclick="toast('🏫 Sınıf ekleme yakında!','info');return false">Sınıf Ekle +</a>
+        </div>
+        <div class="class-grid">
+          <div class="cc-empty" style="background:#fff;border:1.5px dashed var(--bd);border-radius:14px;padding:30px;grid-column:1/-1">
+            <div class="cc-empty-icon">🏫</div>
+            <div class="cc-empty-t">Henüz sınıf eklenmedi</div>
+            <div class="cc-empty-s">Sınıf yönetim modülü yakında aktif olacak</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MID -->
+      <div class="dmid">
+        <!-- Öğrenci Performansı -->
+        <div class="dc">
+          <div class="dc-hd">
+            <div class="dc-title">👥 Öğrenci Performansı</div>
+            <a class="dc-lnk" href="#" onclick="toast('📈 Raporlar yakında!','info');return false">Tümünü Gör →</a>
+          </div>
+          <div class="spi-empty">
+            <div style="font-size:1.8rem;margin-bottom:8px">👥</div>
+            <div>Henüz öğrenci verisi yok</div>
+            <div style="font-size:.75rem;margin-top:4px">Sınıf ekledikçe veriler burada görünecek</div>
+          </div>
+        </div>
+
+        <!-- Haftalık + AI -->
+        <div class="dc">
+          <div class="dc-hd">
+            <div class="dc-title">📈 Haftalık Aktivite</div>
+            <span style="font-size:.78rem;color:var(--tl);font-weight:600">Bu hafta: 0 çözüm</span>
+          </div>
+          <div class="wca" id="wChart"></div>
+          <div class="ai-sug" onclick="toast('🤖 AI analiz yakında aktif olacak!','ok')">
+            <div class="ai-ico">🤖</div>
+            <div class="ai-txt">
+              <h4>Yapay Zeka Önerisi</h4>
+              <p>Öğrenci verileri birikmeye başladığında kişiselleştirilmiş sınıf analizleri burada görünecek!</p>
+              <div class="ai-act">Sınıf Ekle →</div>
             </div>
+          </div>
+        </div>
+      </div>
 
-            {{-- Sağ: Bildirim + Profil --}}
-            <div class="flex items-center gap-3">
+      <!-- BOTTOM -->
+      <div class="dbot">
+        <!-- Son Sınavlar -->
+        <div class="dc">
+          <div class="dc-hd">
+            <div class="dc-title">📋 Son Sınavlarım</div>
+            <a class="dc-lnk" href="#" onclick="toast('📋 Tüm sınavlar yakında!','info');return false">Tümü →</a>
+          </div>
+          <div class="qi-empty">
+            <div style="font-size:2rem;margin-bottom:8px">📋</div>
+            <div style="font-weight:700;font-size:.88rem">Henüz sınav oluşturulmadı</div>
+            <div style="font-size:.78rem;margin-top:4px">İlk sınavını oluştur!</div>
+          </div>
+        </div>
 
-                {{-- Arama --}}
-                <div class="relative hidden md:block">
-                    <input type="text" placeholder="Soru veya öğrenci ara..."
-                           class="pl-9 pr-4 py-2 rounded-xl bg-purple-50 border border-purple-100
-                                  text-sm font-semibold text-purple-800 placeholder-purple-300
-                                  focus:outline-none focus:border-purple-400 focus:bg-white transition w-52"/>
-                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-purple-300 text-sm">🔍</span>
-                </div>
+        <!-- Sınıf Durumu -->
+        <div class="dc">
+          <div class="dc-hd">
+            <div class="dc-title">📊 Sınıf Durumu</div>
+          </div>
+          <div style="text-align:center;padding:20px 0;color:var(--tl)">
+            <div style="font-size:2rem;margin-bottom:8px">📊</div>
+            <div style="font-weight:700;font-size:.88rem">Veri bekleniyor</div>
+            <div style="font-size:.78rem;margin-top:4px">Sınıf ekledikten sonra istatistikler görünecek</div>
+          </div>
+        </div>
+      </div>
 
-                {{-- Bildirim --}}
-                <div class="relative">
-                    <button class="w-9 h-9 rounded-xl bg-purple-50 border border-purple-100
-                                   flex items-center justify-center text-purple-600
-                                   hover:bg-purple-100 transition relative">
-                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                             stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-                            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-                        </svg>
-                        <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-gold-500 rounded-full border border-white pulse-gold"></span>
-                    </button>
-                </div>
+    </main>
+  </div>
+</div>
 
-                {{-- Profil --}}
-                <div class="flex items-center gap-2.5 bg-purple-50 border border-purple-100 rounded-xl px-3 py-1.5 cursor-pointer hover:bg-purple-100 transition">
-                    <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-600 to-purple-400 flex items-center justify-center text-white font-black text-xs">
-                        {{ mb_substr($ogretmen->ad ?? 'Ö', 0, 1) }}
-                    </div>
-                    <div class="hidden sm:block">
-                        <p class="text-purple-900 font-bold text-xs leading-tight">{{ $ogretmen->ad_soyad ?? 'Öğretmen Adı' }}</p>
-                        <p class="text-purple-400 text-xs font-semibold">{{ $ogretmen->brans ?? 'Matematik' }}</p>
-                    </div>
-                    <span class="text-purple-300 text-xs">▾</span>
-                </div>
-            </div>
-        </header>
-
-        {{-- ── PAGE BODY ── --}}
-        <main class="flex-1 p-6 space-y-6 overflow-y-auto">
-
-            {{-- ════ 1. KARŞILAMA + ÜST İSTATİSTİK KARTLARI ════ --}}
-            <div class="grid grid-cols-1 lg:grid-cols-5 gap-5">
-
-                {{-- Karşılama --}}
-                <div class="lg:col-span-2 bg-gradient-to-br from-purple-700 to-purple-500 rounded-2xl p-6
-                            text-white shadow-glow relative overflow-hidden">
-                    <div class="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-white/5"></div>
-                    <div class="absolute bottom-0 left-1/3 w-24 h-24 rounded-full bg-gold-500/10"></div>
-                    <p class="text-white/70 text-sm font-bold mb-1">👋 Merhaba,</p>
-                    <h2 class="font-baloo text-2xl font-extrabold mb-1">{{ $ogretmen->ad ?? 'Öğretmen' }}!</h2>
-                    <p class="text-white/65 text-sm leading-relaxed">
-                        Bugün <span class="text-gold-400 font-bold">{{ $bugunSinavSayisi ?? 2 }} sınavın</span> var.<br>
-                        Öğrencilerin seni bekliyor! 🚀
-                    </p>
-                    <button onclick="openSoruModal()"
-                            class="mt-4 inline-flex items-center gap-2 bg-gold-500 hover:bg-gold-600
-                                   text-white text-sm font-black px-4 py-2 rounded-xl transition shadow-gold">
-                        ✏️ Yeni Soru Ekle
-                    </button>
-                </div>
-
-                {{-- İstatistik Kartları --}}
-                @php
-                    $statCards = [
-                        ['icon'=>'📝','label'=>'Toplam Sorum',   'value'=>$toplamSoru    ?? 148, 'color'=>'purple', 'sub'=>'soru bankasında'],
-                        ['icon'=>'🎯','label'=>'Aktif Sınav',    'value'=>$aktifSinav    ?? 3,   'color'=>'gold',   'sub'=>'şu an devam ediyor'],
-                        ['icon'=>'👨‍🎓','label'=>'Takip Ettiğim', 'value'=>$toplamOgrenci ?? 86,  'color'=>'teal',   'sub'=>'öğrenci'],
-                    ];
-                @endphp
-
-                @foreach($statCards as $i => $sc)
-                <div class="stat-card bg-white rounded-2xl p-5 shadow-card border border-purple-100 flex flex-col gap-2 fade-in"
-                     style="animation-delay: {{ $i * 0.08 }}s">
-                    <div class="flex items-center justify-between">
-                        <span class="text-2xl">{{ $sc['icon'] }}</span>
-                        <span class="text-xs font-bold px-2 py-0.5 rounded-full
-                            {{ $sc['color']==='gold' ? 'bg-gold-500/15 text-gold-600' :
-                               ($sc['color']==='teal' ? 'bg-teal-50 text-teal-600' : 'bg-purple-100 text-purple-600') }}">
-                            Canlı
-                        </span>
-                    </div>
-                    <p class="font-baloo text-3xl font-extrabold text-purple-900">{{ $sc['value'] }}</p>
-                    <div>
-                        <p class="font-bold text-sm text-purple-700">{{ $sc['label'] }}</p>
-                        <p class="text-purple-400 text-xs font-semibold">{{ $sc['sub'] }}</p>
-                    </div>
-                </div>
-                @endforeach
-
-                {{-- Haftanın Soru Canavarı --}}
-                <div class="stat-card bg-gradient-to-br from-gold-500 to-orange-400 rounded-2xl p-5 shadow-gold text-white flex flex-col gap-1 fade-in"
-                     style="animation-delay:.25s">
-                    <span class="text-3xl">🦁</span>
-                    <p class="font-baloo text-lg font-extrabold leading-tight">Haftanın<br>Soru Canavarı</p>
-                    <p class="font-black text-xl">{{ $haftaninSoruCaNavari ?? '7-A Sınıfı' }}</p>
-                    <p class="text-white/75 text-xs font-bold">{{ $haftaninSkor ?? '2.340' }} puan toplandı</p>
-                </div>
-            </div>
-
-            {{-- ════ 2. SORU EKLEME + AKTİF SINAVLAR ════ --}}
-            <div class="grid grid-cols-1 xl:grid-cols-2 gap-5">
-
-                {{-- Hızlı Soru Ekleme Formu --}}
-                <div class="bg-white rounded-2xl shadow-card border border-purple-100 overflow-hidden">
-                    <div class="flex items-center gap-3 px-6 py-4 border-b border-purple-50 bg-purple-50/60">
-                        <span class="text-xl">✏️</span>
-                        <h3 class="font-baloo font-bold text-purple-900">Hızlı Soru Ekle</h3>
-                        <span class="ml-auto text-xs text-purple-400 font-bold">Soru Bankası</span>
-                    </div>
-                    <div class="p-6 space-y-4">
-                        <form action="{{ route('ogretmen.soru.ekle') }}" method="POST" id="soruForm">
-                            @csrf
-
-                            {{-- Soru Metni --}}
-                            <div>
-                                <label class="block text-xs font-black text-purple-700 uppercase tracking-wide mb-1.5">
-                                    Soru Metni <span class="text-red-400">*</span>
-                                </label>
-                                <textarea name="soru_metni" rows="3" required
-                                    placeholder="Sorunuzu buraya yazınız..."
-                                    class="w-full px-4 py-3 rounded-xl border border-purple-200 bg-purple-50/40
-                                           text-sm font-semibold text-purple-900 placeholder-purple-300
-                                           focus:outline-none focus:border-purple-500 focus:bg-white transition resize-none">{{ old('soru_metni') }}</textarea>
-                            </div>
-
-                            {{-- Ders + Sınıf Seviyesi --}}
-                            <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label class="block text-xs font-black text-purple-700 uppercase tracking-wide mb-1.5">Ders</label>
-                                    <select name="ders_id" required
-                                        class="w-full px-3 py-2.5 rounded-xl border border-purple-200 bg-purple-50/40
-                                               text-sm font-bold text-purple-900
-                                               focus:outline-none focus:border-purple-500 transition">
-                                        <option value="">Seçiniz…</option>
-                                        @foreach($dersler ?? [] as $ders)
-                                            <option value="{{ $ders->id }}" {{ old('ders_id') == $ders->id ? 'selected' : '' }}>
-                                                {{ $ders->ad }}
-                                            </option>
-                                        @endforeach
-                                        {{-- Fallback --}}
-                                        @if(empty($dersler))
-                                            <option value="1">Matematik</option>
-                                            <option value="2">Fen Bilimleri</option>
-                                            <option value="3">Türkçe</option>
-                                            <option value="4">Sosyal Bilgiler</option>
-                                            <option value="5">İngilizce</option>
-                                            <option value="6">Din Kültürü</option>
-                                        @endif
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-black text-purple-700 uppercase tracking-wide mb-1.5">Sınıf Seviyesi</label>
-                                    <select name="sinif_seviyesi"
-                                        class="w-full px-3 py-2.5 rounded-xl border border-purple-200 bg-purple-50/40
-                                               text-sm font-bold text-purple-900
-                                               focus:outline-none focus:border-purple-500 transition">
-                                        <option value="5">5. Sınıf</option>
-                                        <option value="6">6. Sınıf</option>
-                                        <option value="7">7. Sınıf</option>
-                                        <option value="8" selected>8. Sınıf</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            {{-- Şıklar --}}
-                            <div class="space-y-2">
-                                <label class="block text-xs font-black text-purple-700 uppercase tracking-wide mb-1">
-                                    Şıklar <span class="text-red-400">*</span>
-                                </label>
-                                @foreach(['A','B','C','D'] as $sik)
-                                <div class="flex items-center gap-2.5">
-                                    <label class="flex items-center justify-center w-7 h-7 rounded-lg font-black text-xs
-                                                  bg-purple-100 text-purple-700 cursor-pointer flex-shrink-0 has-[:checked]:bg-gold-500 has-[:checked]:text-white transition">
-                                        <input type="radio" name="dogru_cevap" value="{{ $sik }}" class="hidden" required/>
-                                        {{ $sik }}
-                                    </label>
-                                    <input type="text" name="sik_{{ strtolower($sik) }}" required
-                                           placeholder="{{ $sik }} şıkkını girin..."
-                                           value="{{ old('sik_'.strtolower($sik)) }}"
-                                           class="flex-1 px-3 py-2 rounded-xl border border-purple-200 bg-purple-50/40
-                                                  text-sm font-semibold text-purple-900 placeholder-purple-300
-                                                  focus:outline-none focus:border-purple-500 focus:bg-white transition"/>
-                                </div>
-                                @endforeach
-                                <p class="text-purple-400 text-xs font-semibold">💡 Doğru cevap için ilgili harf butonuna tıklayın (altın renge döner)</p>
-                            </div>
-
-                            {{-- Zorluk --}}
-                            <div>
-                                <label class="block text-xs font-black text-purple-700 uppercase tracking-wide mb-1.5">Zorluk Seviyesi</label>
-                                <div class="flex gap-2">
-                                    @foreach(['Kolay'=>'green','Orta'=>'gold','Zor'=>'red'] as $seviye => $renk)
-                                    <label class="flex-1 text-center cursor-pointer">
-                                        <input type="radio" name="zorluk" value="{{ $seviye }}" class="hidden peer" {{ $seviye==='Orta' ? 'checked' : '' }}/>
-                                        <span class="block py-1.5 rounded-xl text-xs font-black border-2 transition
-                                            peer-checked:border-purple-600 peer-checked:bg-purple-600 peer-checked:text-white
-                                            border-purple-100 text-purple-400 hover:border-purple-300">
-                                            {{ $seviye }}
-                                        </span>
-                                    </label>
-                                    @endforeach
-                                </div>
-                            </div>
-
-                            <button type="submit"
-                                    class="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-purple-500
-                                           text-white font-black text-sm tracking-wide
-                                           hover:from-purple-700 hover:to-purple-600 transition shadow-glow">
-                                ➕ Soruyu Bankaya Kaydet
-                            </button>
-                        </form>
-                    </div>
-                </div>
-
-                {{-- Sınav Oluşturma / Aktif Sınavlar --}}
-                <div class="flex flex-col gap-5">
-
-                    {{-- Sınav Paketi Oluştur --}}
-                    <div class="bg-white rounded-2xl shadow-card border border-purple-100 overflow-hidden flex-shrink-0">
-                        <div class="flex items-center gap-3 px-6 py-4 border-b border-purple-50 bg-purple-50/60">
-                            <span class="text-xl">🧩</span>
-                            <h3 class="font-baloo font-bold text-purple-900">Sınav Paketi Oluştur</h3>
-                        </div>
-                        <div class="p-6">
-                            <form action="{{ route('ogretmen.sinav.olustur') }}" method="POST" class="space-y-3">
-                                @csrf
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <label class="block text-xs font-black text-purple-700 uppercase tracking-wide mb-1.5">Sınav Adı</label>
-                                        <input type="text" name="sinav_adi" placeholder="Örn: Matematik Deneme 1"
-                                               class="w-full px-3 py-2.5 rounded-xl border border-purple-200 bg-purple-50/40
-                                                      text-sm font-semibold placeholder-purple-300
-                                                      focus:outline-none focus:border-purple-500 focus:bg-white transition"/>
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-black text-purple-700 uppercase tracking-wide mb-1.5">Ders</label>
-                                        <select name="sinav_ders_id"
-                                            class="w-full px-3 py-2.5 rounded-xl border border-purple-200 bg-purple-50/40
-                                                   text-sm font-bold focus:outline-none focus:border-purple-500 transition">
-                                            @foreach($dersler ?? [] as $ders)
-                                                <option value="{{ $ders->id }}">{{ $ders->ad }}</option>
-                                            @endforeach
-                                            @if(empty($dersler))
-                                                <option>Matematik</option>
-                                                <option>Fen Bilimleri</option>
-                                            @endif
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <label class="block text-xs font-black text-purple-700 uppercase tracking-wide mb-1.5">Soru Sayısı</label>
-                                        <input type="number" name="soru_sayisi" min="1" max="100" value="20"
-                                               class="w-full px-3 py-2.5 rounded-xl border border-purple-200 bg-purple-50/40
-                                                      text-sm font-semibold focus:outline-none focus:border-purple-500 focus:bg-white transition"/>
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-black text-purple-700 uppercase tracking-wide mb-1.5">Süre (dk)</label>
-                                        <input type="number" name="sure" min="5" max="180" value="40"
-                                               class="w-full px-3 py-2.5 rounded-xl border border-purple-200 bg-purple-50/40
-                                                      text-sm font-semibold focus:outline-none focus:border-purple-500 focus:bg-white transition"/>
-                                    </div>
-                                </div>
-                                <button type="submit"
-                                        class="w-full py-3 rounded-xl bg-gradient-to-r from-gold-500 to-orange-400
-                                               text-white font-black text-sm tracking-wide transition shadow-gold hover:from-gold-600">
-                                    🚀 Sınav Oluştur & Kod Üret
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-
-                    {{-- Aktif Sınavlar --}}
-                    <div class="bg-white rounded-2xl shadow-card border border-purple-100 overflow-hidden flex-1">
-                        <div class="flex items-center justify-between px-6 py-4 border-b border-purple-50 bg-purple-50/60">
-                            <div class="flex items-center gap-2">
-                                <span class="text-xl">🔴</span>
-                                <h3 class="font-baloo font-bold text-purple-900">Aktif Sınavlar</h3>
-                            </div>
-                            <a href="{{ route('ogretmen.sinavlarim') }}"
-                               class="text-xs font-bold text-purple-500 hover:text-purple-700 transition">
-                                Tümü →
-                            </a>
-                        </div>
-                        <div class="divide-y divide-purple-50">
-                            @forelse($aktifSinavlar ?? [] as $sinav)
-                            <div class="flex items-center gap-3 px-6 py-3.5">
-                                <div class="w-9 h-9 rounded-xl bg-purple-100 flex items-center justify-center text-sm flex-shrink-0">📋</div>
-                                <div class="flex-1 min-w-0">
-                                    <p class="font-bold text-sm text-purple-900 truncate">{{ $sinav->ad }}</p>
-                                    <p class="text-purple-400 text-xs font-semibold">{{ $sinav->katilimci_sayisi ?? 0 }} öğrenci katıldı</p>
-                                </div>
-                                <span class="font-black text-xs bg-purple-100 text-purple-700 px-2.5 py-1 rounded-lg tracking-wider">
-                                    {{ $sinav->kod }}
-                                </span>
-                            </div>
-                            @empty
-                            {{-- Demo veriler --}}
-                            @foreach([['Matematik Deneme 1','QZ-2841',24],['Fen 6. Sınıf','QZ-5519',18],['Türkçe Genel','QZ-3302',31]] as $demo)
-                            <div class="flex items-center gap-3 px-6 py-3.5">
-                                <div class="w-9 h-9 rounded-xl bg-purple-100 flex items-center justify-center text-sm flex-shrink-0">📋</div>
-                                <div class="flex-1 min-w-0">
-                                    <p class="font-bold text-sm text-purple-900">{{ $demo[0] }}</p>
-                                    <p class="text-purple-400 text-xs font-semibold">{{ $demo[2] }} öğrenci katıldı</p>
-                                </div>
-                                <span class="font-black text-xs bg-purple-100 text-purple-700 px-2.5 py-1 rounded-lg tracking-wider">
-                                    {{ $demo[1] }}
-                                </span>
-                            </div>
-                            @endforeach
-                            @endforelse
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- ════ 3. SORU BANKASI ÖNİZLEME ════ --}}
-            <div class="bg-white rounded-2xl shadow-card border border-purple-100 overflow-hidden">
-                <div class="flex items-center justify-between px-6 py-4 border-b border-purple-50 bg-purple-50/60 flex-wrap gap-3">
-                    <div class="flex items-center gap-2">
-                        <span class="text-xl">🧠</span>
-                        <h3 class="font-baloo font-bold text-purple-900">Soru Bankası</h3>
-                        <span class="ml-2 bg-purple-100 text-purple-600 text-xs font-black px-2.5 py-0.5 rounded-full">
-                            {{ $toplamSoru ?? 148 }} soru
-                        </span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        {{-- Ders filtre butonları --}}
-                        <div class="flex gap-1.5 flex-wrap">
-                            @foreach(['Tümü','Matematik','Fen','Türkçe','İngilizce'] as $filtre)
-                            <button onclick="filterDers('{{ $filtre }}')"
-                                    class="tab-btn text-xs font-bold px-3 py-1.5 rounded-lg border border-purple-100
-                                           text-purple-500 hover:bg-purple-50 transition {{ $filtre==='Tümü' ? 'active' : '' }}">
-                                {{ $filtre }}
-                            </button>
-                            @endforeach
-                        </div>
-                        <a href="{{ route('ogretmen.soru-bankasi') }}"
-                           class="text-xs font-bold text-purple-500 hover:text-purple-700 transition ml-2">
-                            Tüm Banka →
-                        </a>
-                    </div>
-                </div>
-
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm">
-                        <thead>
-                            <tr class="bg-purple-50/80">
-                                <th class="text-left px-6 py-3 text-xs font-black text-purple-500 uppercase tracking-wide w-8">#</th>
-                                <th class="text-left px-4 py-3 text-xs font-black text-purple-500 uppercase tracking-wide">Soru Metni</th>
-                                <th class="text-left px-4 py-3 text-xs font-black text-purple-500 uppercase tracking-wide">Ders</th>
-                                <th class="text-left px-4 py-3 text-xs font-black text-purple-500 uppercase tracking-wide">Zorluk</th>
-                                <th class="text-left px-4 py-3 text-xs font-black text-purple-500 uppercase tracking-wide">Doğru Cvp.</th>
-                                <th class="text-right px-6 py-3 text-xs font-black text-purple-500 uppercase tracking-wide">İşlemler</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-purple-50">
-                        @forelse($sorular ?? [] as $i => $soru)
-                            <tr class="hover:bg-purple-50/50 transition fade-in" style="animation-delay:{{ $i*0.04 }}s">
-                                <td class="px-6 py-3.5 text-purple-300 font-bold text-xs">{{ $i + 1 }}</td>
-                                <td class="px-4 py-3.5">
-                                    <p class="font-semibold text-purple-900 line-clamp-2 max-w-xs">{{ $soru->soru_metni }}</p>
-                                </td>
-                                <td class="px-4 py-3.5">
-                                    <span class="bg-purple-100 text-purple-700 text-xs font-black px-2.5 py-1 rounded-lg">{{ $soru->ders->ad ?? '-' }}</span>
-                                </td>
-                                <td class="px-4 py-3.5">
-                                    <span class="text-xs font-black px-2.5 py-1 rounded-lg
-                                        {{ $soru->zorluk==='Kolay' ? 'bg-green-100 text-green-700' :
-                                           ($soru->zorluk==='Zor'   ? 'bg-red-100 text-red-700'   : 'bg-gold-500/15 text-gold-600') }}">
-                                        {{ $soru->zorluk }}
-                                    </span>
-                                </td>
-                                <td class="px-4 py-3.5">
-                                    <span class="w-7 h-7 inline-flex items-center justify-center rounded-lg bg-gold-500/20 text-gold-600 font-black text-xs">
-                                        {{ $soru->dogru_cevap }}
-                                    </span>
-                                </td>
-                                <td class="px-6 py-3.5 text-right">
-                                    <div class="flex items-center justify-end gap-1.5">
-                                        <a href="{{ route('ogretmen.soru.duzenle', $soru->id) }}"
-                                           class="w-7 h-7 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center hover:bg-purple-200 transition text-xs" title="Düzenle">✏️</a>
-                                        <form action="{{ route('ogretmen.soru.sil', $soru->id) }}" method="POST"
-                                              onsubmit="return confirm('Bu soruyu silmek istediğinize emin misiniz?')">
-                                            @csrf @method('DELETE')
-                                            <button type="submit"
-                                                    class="w-7 h-7 rounded-lg bg-red-50 text-red-400 flex items-center justify-center hover:bg-red-100 transition text-xs" title="Sil">🗑️</button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        @empty
-                        {{-- Demo satırlar --}}
-                        @php
-                            $demoSorular = [
-                                ['Bir üçgenin iç açıları toplamı kaç derecedir?','Matematik','Kolay','A'],
-                                ['Fotosentez hangi organelde gerçekleşir?','Fen Bilimleri','Orta','C'],
-                                ['Türkiye Cumhuriyeti hangi yılda kuruldu?','Sosyal Bilgiler','Kolay','B'],
-                                ['x² - 5x + 6 = 0 denkleminin kökleri nedir?','Matematik','Zor','D'],
-                                ['Su molekülünün kimyasal formülü nedir?','Fen Bilimleri','Kolay','A'],
-                            ];
-                        @endphp
-                        @foreach($demoSorular as $i => $demo)
-                        <tr class="hover:bg-purple-50/50 transition fade-in" style="animation-delay:{{ $i*0.06 }}s">
-                            <td class="px-6 py-3.5 text-purple-300 font-bold text-xs">{{ $i+1 }}</td>
-                            <td class="px-4 py-3.5 font-semibold text-purple-900 max-w-xs">{{ $demo[0] }}</td>
-                            <td class="px-4 py-3.5">
-                                <span class="bg-purple-100 text-purple-700 text-xs font-black px-2.5 py-1 rounded-lg">{{ $demo[1] }}</span>
-                            </td>
-                            <td class="px-4 py-3.5">
-                                <span class="text-xs font-black px-2.5 py-1 rounded-lg
-                                    {{ $demo[2]==='Kolay' ? 'bg-green-100 text-green-700' :
-                                       ($demo[2]==='Zor'   ? 'bg-red-100 text-red-700'   : 'bg-gold-500/15 text-gold-600') }}">
-                                    {{ $demo[2] }}
-                                </span>
-                            </td>
-                            <td class="px-4 py-3.5">
-                                <span class="w-7 h-7 inline-flex items-center justify-center rounded-lg bg-gold-500/20 text-gold-600 font-black text-xs">{{ $demo[3] }}</span>
-                            </td>
-                            <td class="px-6 py-3.5 text-right">
-                                <div class="flex items-center justify-end gap-1.5">
-                                    <button class="w-7 h-7 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center hover:bg-purple-200 transition text-xs">✏️</button>
-                                    <button class="w-7 h-7 rounded-lg bg-red-50 text-red-400 flex items-center justify-center hover:bg-red-100 transition text-xs">🗑️</button>
-                                </div>
-                            </td>
-                        </tr>
-                        @endforeach
-                        @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            {{-- ════ 4. ÖĞRENCİ BAŞARI TAKİBİ + ROZET/İSTATİSTİKLER ════ --}}
-            <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
-
-                {{-- Sınıf Listesi Tablosu --}}
-                <div class="xl:col-span-2 bg-white rounded-2xl shadow-card border border-purple-100 overflow-hidden">
-                    <div class="flex items-center justify-between px-6 py-4 border-b border-purple-50 bg-purple-50/60">
-                        <div class="flex items-center gap-2">
-                            <span class="text-xl">👥</span>
-                            <h3 class="font-baloo font-bold text-purple-900">Öğrenci Başarı Tablosu</h3>
-                        </div>
-                        <div class="flex gap-1.5">
-                            @foreach(['Tümü','7-A','7-B','8-A'] as $sinif)
-                            <button class="tab-btn text-xs font-bold px-3 py-1.5 rounded-lg border border-purple-100
-                                           text-purple-500 hover:bg-purple-50 transition {{ $sinif==='Tümü'?'active':'' }}">
-                                {{ $sinif }}
-                            </button>
-                            @endforeach
-                        </div>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm">
-                            <thead>
-                                <tr class="bg-purple-50/80">
-                                    <th class="text-left px-5 py-3 text-xs font-black text-purple-500 uppercase tracking-wide">Sıra</th>
-                                    <th class="text-left px-4 py-3 text-xs font-black text-purple-500 uppercase tracking-wide">Öğrenci</th>
-                                    <th class="text-left px-4 py-3 text-xs font-black text-purple-500 uppercase tracking-wide">Sınıf</th>
-                                    <th class="text-left px-4 py-3 text-xs font-black text-purple-500 uppercase tracking-wide">Toplam Puan</th>
-                                    <th class="text-left px-4 py-3 text-xs font-black text-purple-500 uppercase tracking-wide">Başarı %</th>
-                                    <th class="text-left px-4 py-3 text-xs font-black text-purple-500 uppercase tracking-wide">Son Rozet</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-purple-50">
-                            @forelse($ogrenciler ?? [] as $i => $ogr)
-                                <tr class="hover:bg-purple-50/40 transition">
-                                    <td class="px-5 py-3.5">
-                                        <span class="w-7 h-7 inline-flex items-center justify-center rounded-lg font-black text-xs
-                                            {{ $i===0 ? 'bg-gold-500 text-white' : ($i===1 ? 'bg-purple-200 text-purple-700' : ($i===2 ? 'bg-orange-100 text-orange-700' : 'bg-purple-50 text-purple-400')) }}">
-                                            {{ $i+1 }}
-                                        </span>
-                                    </td>
-                                    <td class="px-4 py-3.5">
-                                        <div class="flex items-center gap-2.5">
-                                            <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-purple-500 to-purple-400 flex items-center justify-center text-white font-black text-xs flex-shrink-0">
-                                                {{ mb_substr($ogr->ad, 0, 1) }}
-                                            </div>
-                                            <div>
-                                                <p class="font-bold text-purple-900">{{ $ogr->ad_soyad }}</p>
-                                                <p class="text-purple-400 text-xs">{{ $ogr->ogrenci_no }}</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="px-4 py-3.5">
-                                        <span class="bg-purple-100 text-purple-700 text-xs font-black px-2 py-0.5 rounded-lg">{{ $ogr->sinif }}</span>
-                                    </td>
-                                    <td class="px-4 py-3.5 font-black text-purple-900">{{ number_format($ogr->toplam_puan) }}</td>
-                                    <td class="px-4 py-3.5">
-                                        <div class="flex items-center gap-2">
-                                            <div class="flex-1 bg-purple-100 rounded-full h-1.5 w-20">
-                                                <div class="h-1.5 rounded-full bg-gradient-to-r from-purple-600 to-purple-400"
-                                                     style="width:{{ $ogr->basari_yuzdesi ?? 0 }}%"></div>
-                                            </div>
-                                            <span class="text-xs font-bold text-purple-700">%{{ $ogr->basari_yuzdesi ?? 0 }}</span>
-                                        </div>
-                                    </td>
-                                    <td class="px-4 py-3.5">
-                                        <span class="text-lg" title="{{ $ogr->son_rozet_adi ?? 'Rozet yok' }}">{{ $ogr->son_rozet_emoji ?? '—' }}</span>
-                                    </td>
-                                </tr>
-                            @empty
-                            {{-- Demo öğrenciler --}}
-                            @php
-                                $demoOgr = [
-                                    ['Ahmet Yılmaz','8-A',3840,92,'🏆'],
-                                    ['Zeynep Kaya','7-A',3610,88,'⭐'],
-                                    ['Mehmet Demir','8-A',3540,85,'🎯'],
-                                    ['Elif Şahin','7-B',3320,81,'🔥'],
-                                    ['Ali Çelik','8-A',3200,78,'💡'],
-                                    ['Selin Arslan','6-B',3050,74,'📚'],
-                                ];
-                            @endphp
-                            @foreach($demoOgr as $i => $ogr)
-                            <tr class="hover:bg-purple-50/40 transition fade-in" style="animation-delay:{{ $i*0.06 }}s">
-                                <td class="px-5 py-3.5">
-                                    <span class="w-7 h-7 inline-flex items-center justify-center rounded-lg font-black text-xs
-                                        {{ $i===0?'bg-gold-500 text-white':($i===1?'bg-slate-200 text-slate-600':($i===2?'bg-orange-100 text-orange-600':'bg-purple-50 text-purple-400')) }}">
-                                        {{ $i+1 }}
-                                    </span>
-                                </td>
-                                <td class="px-4 py-3.5">
-                                    <div class="flex items-center gap-2.5">
-                                        <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-purple-500 to-purple-400 flex items-center justify-center text-white font-black text-xs flex-shrink-0">
-                                            {{ mb_substr($ogr[0],0,1) }}
-                                        </div>
-                                        <p class="font-bold text-purple-900 text-sm">{{ $ogr[0] }}</p>
-                                    </div>
-                                </td>
-                                <td class="px-4 py-3.5"><span class="bg-purple-100 text-purple-700 text-xs font-black px-2 py-0.5 rounded-lg">{{ $ogr[1] }}</span></td>
-                                <td class="px-4 py-3.5 font-black text-purple-900">{{ number_format($ogr[2]) }}</td>
-                                <td class="px-4 py-3.5">
-                                    <div class="flex items-center gap-2">
-                                        <div class="flex-1 bg-purple-100 rounded-full h-1.5 w-20">
-                                            <div class="h-1.5 rounded-full bg-gradient-to-r from-purple-600 to-purple-400" style="width:{{ $ogr[3] }}%"></div>
-                                        </div>
-                                        <span class="text-xs font-bold text-purple-700">%{{ $ogr[3] }}</span>
-                                    </div>
-                                </td>
-                                <td class="px-4 py-3.5 text-lg">{{ $ogr[4] }}</td>
-                            </tr>
-                            @endforeach
-                            @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                {{-- Sağ: İstatistik Kartları + Yaklaşan Sınavlar --}}
-                <div class="flex flex-col gap-4">
-
-                    {{-- En Başarılı Sınıf --}}
-                    <div class="bg-gradient-to-br from-purple-600 to-purple-500 text-white rounded-2xl p-5 shadow-glow">
-                        <p class="text-white/65 text-xs font-bold uppercase tracking-wider mb-1">🥇 En Başarılı Sınıf</p>
-                        <p class="font-baloo text-3xl font-extrabold">{{ $enBasariliSinif ?? '7-A' }}</p>
-                        <p class="text-white/70 text-sm mt-1">Ort. <span class="text-gold-400 font-black">%{{ $enBasariliSinifOrt ?? 91 }}</span> başarı oranı</p>
-                        <div class="mt-3 bg-white/10 rounded-xl h-2">
-                            <div class="h-2 rounded-xl bg-gold-400" style="width:{{ $enBasariliSinifOrt ?? 91 }}%"></div>
-                        </div>
-                    </div>
-
-                    {{-- Aktif Öğrenci --}}
-                    <div class="bg-white rounded-2xl p-5 shadow-card border border-purple-100">
-                        <div class="flex items-center justify-between mb-3">
-                            <p class="font-bold text-sm text-purple-700">🔥 Bu Hafta Aktif</p>
-                            <span class="text-xs font-black text-purple-400">7 gün</span>
-                        </div>
-                        <p class="font-baloo text-3xl font-extrabold text-purple-900">{{ $buHaftaAktif ?? 62 }}</p>
-                        <p class="text-purple-400 text-xs font-semibold mt-1">öğrenci çalıştı</p>
-                        <div class="flex gap-1 mt-3">
-                            @foreach([40,65,45,80,70,55,90] as $bar)
-                            <div class="flex-1 bg-purple-100 rounded-sm" style="height:32px; display:flex; align-items:flex-end">
-                                <div class="w-full rounded-sm bg-gradient-to-t from-purple-600 to-purple-400" style="height:{{ $bar }}%"></div>
-                            </div>
-                            @endforeach
-                        </div>
-                        <div class="flex justify-between mt-1">
-                            @foreach(['P','S','Ç','P','C','C','P'] as $gun)
-                            <span class="flex-1 text-center text-purple-300 text-xs font-bold">{{ $gun }}</span>
-                            @endforeach
-                        </div>
-                    </div>
-
-                    {{-- Yaklaşan Sınavlar --}}
-                    <div class="bg-white rounded-2xl shadow-card border border-purple-100 overflow-hidden flex-1">
-                        <div class="flex items-center justify-between px-5 py-3.5 border-b border-purple-50 bg-purple-50/60">
-                            <div class="flex items-center gap-2">
-                                <span>📅</span>
-                                <h4 class="font-baloo font-bold text-sm text-purple-900">Yaklaşan Sınavlar</h4>
-                            </div>
-                            <a href="{{ route('ogretmen.takvim') }}" class="text-xs font-bold text-purple-400 hover:text-purple-600">Tümü →</a>
-                        </div>
-                        <div class="divide-y divide-purple-50">
-                            @forelse($yaklasanSinavlar ?? [] as $sinav)
-                            <div class="flex items-center gap-3 px-5 py-3">
-                                <div class="w-8 h-8 rounded-xl bg-purple-100 flex items-center justify-center text-sm flex-shrink-0">📋</div>
-                                <div class="flex-1 min-w-0">
-                                    <p class="font-bold text-xs text-purple-900 truncate">{{ $sinav->ad }}</p>
-                                    <p class="text-purple-400 text-xs font-semibold">{{ \Carbon\Carbon::parse($sinav->tarih)->format('d M, H:i') }}</p>
-                                </div>
-                                <span class="text-purple-300 text-xs">→</span>
-                            </div>
-                            @empty
-                            @foreach([['Matematik Deneme 2','24 May, 20:00'],['Fen 6. Sınıf','25 May, 19:30'],['Türkçe Tekrar','26 May, 18:00']] as $demo)
-                            <div class="flex items-center gap-3 px-5 py-3">
-                                <div class="w-8 h-8 rounded-xl bg-purple-100 flex items-center justify-center text-sm flex-shrink-0">📋</div>
-                                <div class="flex-1 min-w-0">
-                                    <p class="font-bold text-xs text-purple-900">{{ $demo[0] }}</p>
-                                    <p class="text-purple-400 text-xs font-semibold">{{ $demo[1] }}</p>
-                                </div>
-                                <span class="text-purple-300 text-xs">→</span>
-                            </div>
-                            @endforeach
-                            @endforelse
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-
-        </main>
-
-        {{-- ── FOOTER ── --}}
-        <footer class="border-t border-purple-100 bg-white px-8 py-4 flex items-center justify-between text-xs text-purple-400">
-            <span>Quizion © {{ date('Y') }} · <strong class="text-gold-600">Hitit Üniversitesi Projesi</strong></span>
-            <div class="flex gap-4">
-                <a href="#" class="hover:text-purple-600 transition font-semibold">Gizlilik</a>
-                <a href="#" class="hover:text-purple-600 transition font-semibold">Destek</a>
-                <a href="#" class="hover:text-purple-600 transition font-semibold">KVKK</a>
-            </div>
-        </footer>
-
-    </div>{{-- /main content --}}
-</div>{{-- /layout --}}
-
-{{-- ════ JAVASCRIPT ════ --}}
 <script>
-    // Tab butonları
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const group = this.closest('.flex');
-            group.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-        });
-    });
+const WD=[
+  {d:'Pzt',v:0},{d:'Sal',v:0},{d:'Çar',v:0},
+  {d:'Per',v:0},{d:'Cum',v:0},{d:'Cmt',v:0},{d:'Paz',v:0}
+];
+const COLORS=['#5cc8a8','#1da18a','#3acaaa','#5cc8a8','#1da18a','#3acaaa','#5cc8a8'];
+function buildWeeklyChart(){
+  const el=document.getElementById('wChart');
+  if(!el)return;
+  const max=Math.max(...WD.map(d=>d.v),1);
+  el.innerHTML=WD.map((d,i)=>`
+    <div class="wb-w">
+      <div class="wb-v">${d.v}</div>
+      <div class="wb" style="height:${Math.max(4,(d.v/max*100))}%;background:${COLORS[i]}"></div>
+      <div class="wb-d">${d.d}</div>
+    </div>`).join('');
+}
+buildWeeklyChart();
 
-    // Ders filtresi (demo amaçlı)
-    function filterDers(ders) {
-        console.log('Filtre:', ders);
-        // Gerçek uygulamada AJAX ile filtrelenecek
-    }
-
-    // Sayfa yüklendiğinde sidebar aktif menüyü belirle
-    document.querySelectorAll('.sidebar-item').forEach(item => {
-        if (item.getAttribute('href') === window.location.pathname) {
-            item.classList.add('active');
-        }
-    });
-
-    // Mobil sidebar toggle
-    function toggleSidebar() {
-        const sidebar = document.getElementById('sidebar');
-        sidebar.classList.toggle('-translate-x-full');
-    }
-
-    // Yükleme animasyonları
-    const observer = new IntersectionObserver(entries => {
-        entries.forEach(e => {
-            if (e.isIntersecting) {
-                e.target.style.opacity = '1';
-                e.target.style.transform = 'translateY(0)';
-            }
-        });
-    }, { threshold: 0.1 });
-
-    document.querySelectorAll('.fade-in').forEach(el => {
-        el.style.opacity = '0';
-        el.style.transform = 'translateY(10px)';
-        observer.observe(el);
-    });
-
-    // Flash mesajları (Laravel session)
-    @if(session('success'))
-        showToast('✅ {{ session("success") }}', 'success');
-    @endif
-    @if(session('error'))
-        showToast('❌ {{ session("error") }}', 'error');
-    @endif
-
-    function showToast(msg, type) {
-        const toast = document.createElement('div');
-        toast.className = `fixed bottom-6 right-6 z-50 px-5 py-3 rounded-2xl text-white font-bold text-sm shadow-lg
-            ${type === 'success' ? 'bg-green-500' : 'bg-red-500'}`;
-        toast.style.cssText = 'animation: fadeInUp .3s ease; max-width:320px';
-        toast.textContent = msg;
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 4000);
-    }
+function toast(msg,type='info'){
+  const c=document.getElementById('tw');
+  const t=document.createElement('div');
+  t.className='toast '+(type==='ok'?'ok':type==='err'?'err':type==='warn'?'warn':'');
+  t.innerHTML=msg;c.appendChild(t);
+  setTimeout(()=>{t.classList.add('out');setTimeout(()=>t.remove(),280);},3200);
+}
 </script>
-
 </body>
 </html>
