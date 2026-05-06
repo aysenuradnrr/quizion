@@ -31,7 +31,6 @@ class OgrenciController extends Controller
         $user = Auth::user();
         $sinif = $this->kullaniciSinifi($user);
 
-        // Bütün sınıflarda bütün dersler görünsün
         $dersler = collect([
             'Matematik',
             'Fen Bilimleri',
@@ -53,8 +52,12 @@ class OgrenciController extends Controller
     public function testOlustur(Request $request)
     {
         $request->validate([
-            'ders' => 'required|string',
-            'kazanim' => 'required|string',
+            'dersler' => 'required|array|min:1',
+            'dersler.*' => 'required|string',
+
+            'kazanimlar' => 'required|array|min:1',
+            'kazanimlar.*' => 'required|string',
+
             'kolay_sayisi' => 'required|integer|min:0|max:20',
             'orta_sayisi' => 'required|integer|min:0|max:20',
             'zor_sayisi' => 'required|integer|min:0|max:20',
@@ -63,25 +66,28 @@ class OgrenciController extends Controller
         $user = Auth::user();
         $sinif = $this->kullaniciSinifi($user);
 
+        $dersler = $request->dersler;
+        $kazanimlar = $request->kazanimlar;
+
         $kolay = Question::where('sinif', $sinif)
-            ->where('ders', $request->ders)
-            ->where('kazanim', $request->kazanim)
+            ->whereIn('ders', $dersler)
+            ->whereIn('kazanim', $kazanimlar)
             ->where('zorluk', 'Kolay')
             ->inRandomOrder()
             ->limit((int) $request->kolay_sayisi)
             ->get();
 
         $orta = Question::where('sinif', $sinif)
-            ->where('ders', $request->ders)
-            ->where('kazanim', $request->kazanim)
+            ->whereIn('ders', $dersler)
+            ->whereIn('kazanim', $kazanimlar)
             ->where('zorluk', 'Orta')
             ->inRandomOrder()
             ->limit((int) $request->orta_sayisi)
             ->get();
 
         $zor = Question::where('sinif', $sinif)
-            ->where('ders', $request->ders)
-            ->where('kazanim', $request->kazanim)
+            ->whereIn('ders', $dersler)
+            ->whereIn('kazanim', $kazanimlar)
             ->where('zorluk', 'Zor')
             ->inRandomOrder()
             ->limit((int) $request->zor_sayisi)
@@ -92,8 +98,8 @@ class OgrenciController extends Controller
         return view('ogrenci-test-coz', [
             'user' => $user,
             'questions' => $questions,
-            'ders' => $request->ders,
-            'kazanim' => $request->kazanim,
+            'ders' => implode(', ', $dersler),
+            'kazanim' => implode(', ', $kazanimlar),
         ]);
     }
 }
