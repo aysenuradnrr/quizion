@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Question;
 use App\Models\Kazanim;
 use App\Models\TestResult;
+use App\Models\OnlineExam;
 use Carbon\Carbon;
 
 class OgrenciController extends Controller
@@ -39,14 +40,98 @@ class OgrenciController extends Controller
 
         $sonSinavlar = $results->take(5);
 
+        $dersBasariIzlencesi = $this->dersBasariIzlencesi($results);
+
+        $yaklasanSinavlar = OnlineExam::where('grade', $user->grade)
+            ->where('is_active', true)
+            ->where('starts_at', '>=', now())
+            ->orderBy('starts_at')
+            ->take(5)
+            ->get();
+
+        $bildirimler = $this->bildirimleriHazirla($yaklasanSinavlar);
+
         return view('ogrenci', compact(
             'user',
             'toplamSinav',
             'ortalamaBasari',
             'toplamSoru',
             'haftalikAktivite',
-            'sonSinavlar'
+            'sonSinavlar',
+            'dersBasariIzlencesi',
+            'yaklasanSinavlar',
+            'bildirimler'
         ));
+    }
+
+    private function dersBasariIzlencesi($results)
+    {
+        $dersler = [
+            'Matematik' => '📐',
+            'Fen Bilimleri' => '🧬',
+            'Türkçe' => '📖',
+            'Sosyal Bilgiler' => '🌍',
+            'İngilizce' => '🇬🇧',
+        ];
+
+        return collect($dersler)->map(function ($icon, $ders) use ($results) {
+            $ilgiliSonuclar = $results->filter(function ($result) use ($ders) {
+                return is_array($result->dersler) && in_array($ders, $result->dersler);
+            });
+
+            return [
+                'icon' => $icon,
+                'name' => $ders,
+                'score' => $ilgiliSonuclar->count() > 0 ? round($ilgiliSonuclar->avg('score')) : 0,
+            ];
+        })->values();
+    }
+
+    private function bildirimleriHazirla($yaklasanSinavlar)
+    {
+        return $yaklasanSinavlar->map(function ($sinav) {
+            $saatFarki = now()->diffInHours($sinav->starts_at, false);
+
+            if ($saatFarki <= 24) {
+                $mesaj = $sinav->title . ' sınavı yaklaşıyor.';
+            } else {
+                $mesaj = $sinav->title . ' sınavı sınıfına tanımlandı.';
+            }
+
+            return [
+                'title' => 'Yeni Sınav Bildirimi',
+                'message' => $mesaj,
+                'time' => $sinav->starts_at->format('d.m.Y H:i'),
+            ];
+        });
+    }
+
+    public function yaklasanSinavlar()
+    {
+        $user = Auth::user();
+
+        $yaklasanSinavlar = OnlineExam::where('grade', $user->grade)
+            ->where('is_active', true)
+            ->where('starts_at', '>=', now())
+            ->orderBy('starts_at')
+            ->get();
+
+        return view('ogrenci-yaklasan-sinavlar', compact('user', 'yaklasanSinavlar'));
+    }
+
+    public function bildirimler()
+    {
+        $user = Auth::user();
+
+        $yaklasanSinavlar = OnlineExam::where('grade', $user->grade)
+            ->where('is_active', true)
+            ->where('starts_at', '>=', now())
+            ->orderBy('starts_at')
+            ->get();
+
+        $bildirimler = $this->bildirimleriHazirla($yaklasanSinavlar);
+
+        return view('ogrenci-bildirimler', compact('user', 'bildirimler'));
     }
 
     private function kullaniciSinifi($user): string
@@ -88,10 +173,8 @@ class OgrenciController extends Controller
         $request->validate([
             'dersler' => 'required|array|min:1',
             'dersler.*' => 'required|string',
-
             'kazanimlar' => 'required|array|min:1',
             'kazanimlar.*' => 'required|string',
-
             'kolay_sayisi' => 'required|integer|min:0|max:20',
             'orta_sayisi' => 'required|integer|min:0|max:20',
             'zor_sayisi' => 'required|integer|min:0|max:20',
@@ -133,6 +216,8 @@ class OgrenciController extends Controller
         return view('ogrenci-test-coz', [
             'user' => $user,
             'questions' => $questions,
+            'dersler' => $dersler,
+            'kazanimlar' => $kazanimlar,
             'ders' => implode(', ', $dersler),
             'kazanim' => implode(', ', $kazanimlar),
             'sure' => (int) $request->sure,
@@ -187,8 +272,8 @@ class OgrenciController extends Controller
             'wrong_count' => $yanlis,
             'empty_count' => $bos,
             'score' => $puan,
-            'dersler' => [],
-            'kazanimlar' => [],
+            'dersler' => $request->input('dersler', []),
+            'kazanimlar' => $request->input('kazanimlar', []),
         ]);
 
         $user = Auth::user();

@@ -32,11 +32,32 @@ Route::middleware(['auth', 'ogrenci'])->group(function () {
 
     Route::post('/ogrenci/test-sonuc', [OgrenciController::class, 'testSonuc'])
         ->name('ogrenci.test.sonuc');
+
+    Route::get('/ogrenci/yaklasan-sinavlar', [OgrenciController::class, 'yaklasanSinavlar'])
+        ->name('ogrenci.yaklasan.sinavlar');
+
+    Route::get('/ogrenci/bildirimler', [OgrenciController::class, 'bildirimler'])
+        ->name('ogrenci.bildirimler');
+     
+    Route::get('/ogrenci/sinav-kodu', function () {
+        return view('ogrenci-sinav-kodu');
+    })->name('ogrenci.sinav.kodu');
+
+
 });
 
 Route::middleware(['auth', 'ogretmen'])->group(function () {
     Route::get('/ogretmen/dashboard', [OgretmenController::class, 'dashboard'])
         ->name('ogretmen.dashboard');
+
+    Route::get('/ogretmen/sinav-olustur', [OgretmenController::class, 'sinavOlustur'])
+        ->name('ogretmen.sinav.olustur');
+
+    Route::post('/ogretmen/sinav-kaydet', [OgretmenController::class, 'sinavKaydet'])
+        ->name('ogretmen.sinav.kaydet');
+
+
+        
 });
 
 Route::middleware('auth')->group(function () {

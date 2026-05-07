@@ -9,18 +9,12 @@ class QuestionSeeder extends Seeder
 {
     public function run(): void
     {
+        Question::truncate();
+
         $questions = require database_path('seeders/system_questions.php');
-        
+
         foreach ($questions as $question) {
-            Question::updateOrCreate(
-                [
-                    'sinif' => $question['sinif'],
-                    'ders' => $question['ders'],
-                    'kazanim' => $question['kazanim'],
-                    'soru_metni' => $question['soru_metni'],
-                ],
-                $question
-            );
+            Question::create($question);
         }
     }
 }

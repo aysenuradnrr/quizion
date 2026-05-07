@@ -20,6 +20,7 @@
   --s3:0 20px 60px rgba(61,26,142,.22);
 }
 body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--td);overflow-x:hidden;margin:0}
+a{text-decoration:none;color:inherit}
 
 /* NAV */
 .nav{
@@ -84,6 +85,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--td);overfl
 
 /* MAIN */
 .dm{padding:28px 30px;overflow-y:auto}
+.alert-ok{background:rgba(58,202,170,.12);border:1px solid rgba(58,202,170,.35);color:#0f7a66;border-radius:14px;padding:13px 16px;font-weight:800;margin-bottom:18px}
 .dm-wel{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;flex-wrap:wrap;gap:14px}
 .dm-wel h2{font-family:'Baloo 2',cursive;font-weight:800;font-size:1.55rem;color:var(--td)}
 .dm-wel p{color:var(--tm);font-size:.87rem;margin-top:3px}
@@ -186,6 +188,8 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--td);overfl
 .qi-scv.good{color:var(--gr)}.qi-scv.ok{color:var(--or)}.qi-scv.bad{color:var(--re)}
 .qi-scl{font-size:.68rem;font-weight:600;color:var(--tl)}
 .qi-empty{text-align:center;padding:20px;color:var(--tl);font-size:.85rem;font-weight:600}
+.qi-code{font-family:'Baloo 2',cursive;font-weight:800;font-size:1rem;color:#1da18a;text-align:right}
+.status{font-size:.7rem;font-weight:800;padding:4px 9px;border-radius:8px;background:rgba(58,202,170,.1);color:#1da18a;text-align:center;margin-top:4px}
 
 /* QUICK ACTIONS */
 .quick-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
@@ -227,17 +231,23 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--td);overfl
 
 <div class="toast-wrap" id="tw"></div>
 
+@php
+    $sonSinavlar = $sonSinavlar ?? collect();
+    $sinavSayisi = $sonSinavlar->count();
+    $aktifSinavSayisi = $sonSinavlar->where('is_active', true)->count();
+@endphp
+
 <!-- NAVBAR -->
 <nav class="nav">
-  <a class="nav-logo" href="/">Quiz<span>ion</span></a>
+  <a class="nav-logo" href="{{ route('home') }}">Quiz<span>ion</span></a>
   <div class="nav-right">
-    <button class="notif-btn" onclick="toast('🔔 2 yeni bildiriminiz var!','info')">
-      🔔<span class="notif-dot"></span>
+    <button class="notif-btn" onclick="toast('🔔 Sınav oluşturduğunuzda öğrencilerin paneline bildirim düşer.','info')">
+      🔔
+      @if($sinavSayisi > 0)
+        <span class="notif-dot"></span>
+      @endif
     </button>
-    <div class="dash-user-chip">
-      <div class="duc-av">{{ strtoupper(substr($user->name, 0, 1)) }}</div>
-      <span class="duc-name">{{ $user->name }}</span>
-    </div>
+    
     <form method="POST" action="{{ route('logout') }}" style="display:inline;margin:0">
       @csrf
       <button type="submit" class="btn-exit">Çıkış</button>
@@ -272,30 +282,31 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--td);overfl
       <a class="ds-ni ac" href="{{ route('ogretmen.dashboard') }}">
         <div class="ds-nicon">🏠</div>Anasayfa
       </a>
-      <a class="ds-ni" href="#" onclick="toast('🧠 Soru üretim merkezi yakında!','warn');return false">
+      <a class="ds-ni" href="{{ route('ogretmen.sinav.olustur') }}">
         <div class="ds-nicon">🧠</div>Soru Üretim Merkezi
       </a>
-      <a class="ds-ni" href="#" onclick="toast('📋 Sınav mimarı yakında!','warn');return false">
+      <a class="ds-ni" href="{{ route('ogretmen.sinav.olustur') }}">
         <div class="ds-nicon">📋</div>Sınav Mimarı
-        <span class="ds-nbdg">1</span>
+        @if($sinavSayisi > 0)
+          <span class="ds-nbdg">{{ $sinavSayisi }}</span>
+        @endif
       </a>
-      <a class="ds-ni" href="#" onclick="toast('📊 Analiz odası yakında!','warn');return false">
+      <a class="ds-ni" href="{{ route('ogretmen.dashboard') }}">
         <div class="ds-nicon">📊</div>Analiz Odası
       </a>
-      <a class="ds-ni" href="#" onclick="toast('🏫 Sınıf yönetimi yakında!','warn');return false">
+      <a class="ds-ni" href="{{ route('ogretmen.dashboard') }}">
         <div class="ds-nicon">🏫</div>Sınıf Yönetimi
       </a>
 
       <div class="ds-nd"></div>
       <div class="ds-lbl">👥 Öğrenciler</div>
-      <a class="ds-ni" href="#" onclick="toast('📈 Öğrenci raporları yakında!','warn');return false">
+      <a class="ds-ni" href="{{ route('ogretmen.dashboard') }}">
         <div class="ds-nicon">📈</div>Öğrenci Raporları
-        <span class="ds-nbdg">12</span>
       </a>
-      <a class="ds-ni" href="#" onclick="toast('🎯 Ödev verme yakında!','warn');return false">
-        <div class="ds-nicon">🎯</div>Ödev Ver
+      <a class="ds-ni" href="{{ route('ogretmen.sinav.olustur') }}">
+        <div class="ds-nicon">🎯</div>Ödev / Sınav Ver
       </a>
-      <a class="ds-ni" href="#" onclick="toast('⚡ Canlı yarışma yakında!','warn');return false">
+      <a class="ds-ni" href="{{ route('ogretmen.sinav.olustur') }}">
         <div class="ds-nicon">⚡</div>Canlı Yarışma Başlat
       </a>
 
@@ -304,9 +315,11 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--td);overfl
       <a class="ds-ni" href="{{ route('profile.edit') }}">
         <div class="ds-nicon">👤</div>Profil Ayarları
       </a>
-      <a class="ds-ni" href="#" onclick="toast('🔔 2 yeni bildiriminiz var!','info');return false">
+      <a class="ds-ni" href="{{ route('ogretmen.dashboard') }}">
         <div class="ds-nicon">🔔</div>Bildirimler
-        <span class="ds-nbdg">2</span>
+        @if($sinavSayisi > 0)
+          <span class="ds-nbdg">{{ $sinavSayisi }}</span>
+        @endif
       </a>
 
       <div class="ds-bot">
@@ -316,14 +329,18 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--td);overfl
             <div class="ds-nicon">🚪</div>Çıkış Yap
           </button>
         </form>
-        <button type="button" class="ds-qbtn" onclick="toast('➕ Sınav oluşturma yakında!','ok')">
-          ➕ Yeni Sınav Oluştur
-        </button>
+        <a href="{{ route('ogretmen.sinav.olustur') }}">
+          <button type="button" class="ds-qbtn">➕ Yeni Sınav Oluştur</button>
+        </a>
       </div>
     </aside>
 
     <!-- ═══ MAIN CONTENT ═══ -->
     <main class="dm">
+
+      @if(session('success'))
+        <div class="alert-ok">✅ {{ session('success') }}</div>
+      @endif
 
       <!-- Başlık -->
       <div class="dm-wel">
@@ -332,8 +349,12 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--td);overfl
           <p>Öğretmen panelinize hoş geldiniz. Branş: <strong>{{ $user->branch }}</strong></p>
         </div>
         <div class="dm-acts">
-          <button type="button" class="btn-ds" onclick="toast('📊 Analiz odası yakında!','info')">📊 Analiz Odası</button>
-          <button type="button" class="btn-dp" onclick="toast('➕ Sınav oluşturma yakında!','ok')">➕ Sınav Oluştur</button>
+          <a href="{{ route('ogretmen.dashboard') }}">
+            <button type="button" class="btn-ds">📊 Analiz Odası</button>
+          </a>
+          <a href="{{ route('ogretmen.sinav.olustur') }}">
+            <button type="button" class="btn-dp">➕ Sınav Oluştur</button>
+          </a>
         </div>
       </div>
 
@@ -342,7 +363,9 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--td);overfl
         <div class="teacher-bar-icon">🏫</div>
         <div>
           <div class="teacher-bar-t">Öğretmen Paneline Hoş Geldiniz, {{ $user->name }} Hoca!</div>
-          <div class="teacher-bar-d">Branş: {{ $user->branch }} · Sınıf yönetimi ve sınav modülleri yakında aktif olacak.</div>
+          <div class="teacher-bar-d">
+            Branş: {{ $user->branch }} · Sınıf seviyesine uygun sınav oluşturduğunuzda öğrencilerin paneline otomatik düşer.
+          </div>
         </div>
       </div>
 
@@ -352,39 +375,45 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--td);overfl
         <div class="wc-txt">
           <h3>Quizion Öğretmen Paneli Hazır!</h3>
           <p>
-            Hesabınız başarıyla oluşturuldu.
-            Sınıf ekleme, sınav oluşturma ve öğrenci takip modülleri çok yakında aktif olacak.
-            Şimdilik profilinizi düzenleyebilirsiniz.
+            Sınav oluşturma, sınav kodu üretme ve öğrenci bildirim sistemi aktif.
+            Oluşturduğunuz sınavlar ilgili sınıf seviyesindeki öğrencilerin yaklaşan sınavlar alanında görünür.
           </p>
         </div>
       </div>
 
       <!-- STAT CARDS -->
       <div class="dsr">
-        <div class="dsc c1">
+        <a class="dsc c1" href="{{ route('ogretmen.dashboard') }}">
           <div class="dsc-ico">🏫</div>
-          <div class="dsc-val">0</div>
-          <div class="dsc-lbl">Aktif Sınıf</div>
-          <div class="dsc-chg nu">Sınıf ekleyin</div>
-        </div>
-        <div class="dsc c2">
+          <div class="dsc-val">{{ $aktifSinavSayisi }}</div>
+          <div class="dsc-lbl">Aktif Sınav</div>
+          <div class="dsc-chg {{ $aktifSinavSayisi > 0 ? 'up' : 'nu' }}">
+            {{ $aktifSinavSayisi > 0 ? 'Öğrenci panelinde görünür' : 'Sınav oluşturun' }}
+          </div>
+        </a>
+
+        <a class="dsc c2" href="{{ route('ogretmen.dashboard') }}">
           <div class="dsc-ico">👥</div>
           <div class="dsc-val">0</div>
           <div class="dsc-lbl">Toplam Öğrenci</div>
-          <div class="dsc-chg nu">Henüz öğrenci yok</div>
-        </div>
-        <div class="dsc c3">
+          <div class="dsc-chg nu">Sınıf seviyesine göre takip</div>
+        </a>
+
+        <a class="dsc c3" href="{{ route('ogretmen.sinav.olustur') }}">
           <div class="dsc-ico">📋</div>
-          <div class="dsc-val">0</div>
+          <div class="dsc-val">{{ $sinavSayisi }}</div>
           <div class="dsc-lbl">Toplam Sınav</div>
-          <div class="dsc-chg nu">İlk sınavı oluşturun</div>
-        </div>
-        <div class="dsc c4">
+          <div class="dsc-chg {{ $sinavSayisi > 0 ? 'up' : 'nu' }}">
+            {{ $sinavSayisi > 0 ? 'Sınavlar kaydedildi' : 'İlk sınavı oluşturun' }}
+          </div>
+        </a>
+
+        <a class="dsc c4" href="{{ route('profile.edit') }}">
           <div class="dsc-ico">📈</div>
-          <div class="dsc-val">%0</div>
-          <div class="dsc-lbl">Ort. Başarı</div>
-          <div class="dsc-chg nu">Veri bekleniyor</div>
-        </div>
+          <div class="dsc-val">{{ $user->branch ? '1' : '0' }}</div>
+          <div class="dsc-lbl">Branş Bilgisi</div>
+          <div class="dsc-chg nu">{{ $user->branch ?? 'Profilde tamamlayın' }}</div>
+        </a>
       </div>
 
       <!-- HIZLI İŞLEMLER -->
@@ -394,40 +423,54 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--td);overfl
         </div>
       </div>
       <div class="quick-actions" style="margin-bottom:20px">
-        <button type="button" class="qa-btn" onclick="toast('🧠 Soru üretim merkezi yakında!','warn')">
+        <a class="qa-btn" href="{{ route('ogretmen.sinav.olustur') }}">
           <div class="qa-icon">🧠</div>
           <div class="qa-title">Soru Üret</div>
-          <div class="qa-desc">Yapay zeka ile otomatik soru oluştur</div>
-        </button>
-        <button type="button" class="qa-btn" onclick="toast('📋 Sınav oluşturma yakında!','warn')">
+          <div class="qa-desc">Sınav oluşturma ekranından soru seçimine geç</div>
+        </a>
+
+        <a class="qa-btn" href="{{ route('ogretmen.sinav.olustur') }}">
           <div class="qa-icon">📋</div>
           <div class="qa-title">Sınav Oluştur</div>
           <div class="qa-desc">Öğrencilerin için yeni sınav hazırla</div>
-        </button>
-        <button type="button" class="qa-btn" onclick="toast('🏫 Sınıf ekleme yakında!','warn')">
+        </a>
+
+        <a class="qa-btn" href="{{ route('ogretmen.dashboard') }}">
           <div class="qa-icon">🏫</div>
-          <div class="qa-title">Sınıf Ekle</div>
-          <div class="qa-desc">Yeni sınıf oluştur ve öğrenci ekle</div>
-        </button>
-        <button type="button" class="qa-btn" onclick="toast('⚡ Canlı yarışma yakında!','warn')">
+          <div class="qa-title">Sınıf Durumu</div>
+          <div class="qa-desc">Sınıf seviyesine göre sınavları takip et</div>
+        </a>
+
+        <a class="qa-btn" href="{{ route('ogretmen.sinav.olustur') }}">
           <div class="qa-icon">⚡</div>
           <div class="qa-title">Canlı Yarışma</div>
-          <div class="qa-desc">Anlık sınıf yarışması başlat</div>
-        </button>
+          <div class="qa-desc">Başlangıç saati yakın sınav oluştur</div>
+        </a>
       </div>
 
       <!-- SINIFLARIM -->
       <div class="class-section">
         <div class="class-section-hd">
           <div class="class-section-title">🏫 Sınıflarım</div>
-          <a class="dc-lnk" href="#" onclick="toast('🏫 Sınıf ekleme yakında!','info');return false">Sınıf Ekle +</a>
+          <a class="dc-lnk" href="{{ route('ogretmen.sinav.olustur') }}">Sınava Sınıf Ata +</a>
         </div>
         <div class="class-grid">
-          <div class="cc-empty" style="background:#fff;border:1.5px dashed var(--bd);border-radius:14px;padding:30px;grid-column:1/-1">
-            <div class="cc-empty-icon">🏫</div>
-            <div class="cc-empty-t">Henüz sınıf eklenmedi</div>
-            <div class="cc-empty-s">Sınıf yönetim modülü yakında aktif olacak</div>
-          </div>
+          @foreach(['5','6','7','8'] as $sinif)
+            @php
+              $sinifSinavSayisi = $sonSinavlar->where('grade', $sinif)->count();
+            @endphp
+            <a class="class-card" href="{{ route('ogretmen.sinav.olustur') }}">
+              <div class="cc-head">
+                <div class="cc-name">{{ $sinif }}. Sınıf</div>
+                <div class="cc-cnt">{{ $sinifSinavSayisi }} sınav</div>
+              </div>
+              <div class="cc-sub">Bu sınıf için sınav oluşturabilirsiniz</div>
+              <div class="cc-prog">
+                <div class="cc-fill" style="width:{{ min(100, $sinifSinavSayisi * 25) }}%"></div>
+              </div>
+              <div class="cc-meta">Aktif sistem: sınav bildirimi</div>
+            </a>
+          @endforeach
         </div>
       </div>
 
@@ -437,12 +480,12 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--td);overfl
         <div class="dc">
           <div class="dc-hd">
             <div class="dc-title">👥 Öğrenci Performansı</div>
-            <a class="dc-lnk" href="#" onclick="toast('📈 Raporlar yakında!','info');return false">Tümünü Gör →</a>
+            <a class="dc-lnk" href="{{ route('ogretmen.dashboard') }}">Tümünü Gör →</a>
           </div>
           <div class="spi-empty">
             <div style="font-size:1.8rem;margin-bottom:8px">👥</div>
-            <div>Henüz öğrenci verisi yok</div>
-            <div style="font-size:.75rem;margin-top:4px">Sınıf ekledikçe veriler burada görünecek</div>
+            <div>Öğrenci performans verisi sınav sonuçları oluştukça burada gelişecek</div>
+            <div style="font-size:.75rem;margin-top:4px">Şimdilik sınav oluşturma ve bildirim sistemi aktif</div>
           </div>
         </div>
 
@@ -450,17 +493,19 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--td);overfl
         <div class="dc">
           <div class="dc-hd">
             <div class="dc-title">📈 Haftalık Aktivite</div>
-            <span style="font-size:.78rem;color:var(--tl);font-weight:600">Bu hafta: 0 çözüm</span>
+            <span style="font-size:.78rem;color:var(--tl);font-weight:600">Bu hafta: {{ $sinavSayisi }} sınav</span>
           </div>
           <div class="wca" id="wChart"></div>
-          <div class="ai-sug" onclick="toast('🤖 AI analiz yakında aktif olacak!','ok')">
+          <a class="ai-sug" href="{{ route('ogretmen.sinav.olustur') }}">
             <div class="ai-ico">🤖</div>
             <div class="ai-txt">
               <h4>Yapay Zeka Önerisi</h4>
-              <p>Öğrenci verileri birikmeye başladığında kişiselleştirilmiş sınıf analizleri burada görünecek!</p>
-              <div class="ai-act">Sınıf Ekle →</div>
+              <p>
+                Sınıf seviyesine uygun sınav oluşturduğunuzda öğrencilerin yaklaşan sınavlar ve bildirim alanları otomatik güncellenir.
+              </p>
+              <div class="ai-act">Sınav Oluştur →</div>
             </div>
-          </div>
+          </a>
         </div>
       </div>
 
@@ -470,13 +515,33 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--td);overfl
         <div class="dc">
           <div class="dc-hd">
             <div class="dc-title">📋 Son Sınavlarım</div>
-            <a class="dc-lnk" href="#" onclick="toast('📋 Tüm sınavlar yakında!','info');return false">Tümü →</a>
+            <a class="dc-lnk" href="{{ route('ogretmen.sinav.olustur') }}">Yeni Sınav +</a>
           </div>
-          <div class="qi-empty">
-            <div style="font-size:2rem;margin-bottom:8px">📋</div>
-            <div style="font-weight:700;font-size:.88rem">Henüz sınav oluşturulmadı</div>
-            <div style="font-size:.78rem;margin-top:4px">İlk sınavını oluştur!</div>
-          </div>
+
+          @forelse($sonSinavlar as $sinav)
+            <div class="qi">
+              <div class="qi-ico" style="background:rgba(58,202,170,.1);color:#1da18a">📋</div>
+              <div class="qi-info">
+                <div class="qi-name">{{ $sinav->title }}</div>
+                <div class="qi-meta">
+                  {{ $sinav->ders ?? 'Genel' }}
+                  · {{ $sinav->grade }}. Sınıf
+                  · {{ $sinav->starts_at->format('d.m.Y H:i') }}
+                  · {{ $sinav->duration }} dk
+                </div>
+              </div>
+              <div>
+                <div class="qi-code">{{ $sinav->exam_code }}</div>
+                <div class="status">{{ $sinav->is_active ? 'Aktif' : 'Pasif' }}</div>
+              </div>
+            </div>
+          @empty
+            <div class="qi-empty">
+              <div style="font-size:2rem;margin-bottom:8px">📋</div>
+              <div style="font-weight:700;font-size:.88rem">Henüz sınav oluşturulmadı</div>
+              <div style="font-size:.78rem;margin-top:4px">İlk sınavını oluştur!</div>
+            </div>
+          @endforelse
         </div>
 
         <!-- Sınıf Durumu -->
@@ -486,8 +551,12 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--td);overfl
           </div>
           <div style="text-align:center;padding:20px 0;color:var(--tl)">
             <div style="font-size:2rem;margin-bottom:8px">📊</div>
-            <div style="font-weight:700;font-size:.88rem">Veri bekleniyor</div>
-            <div style="font-size:.78rem;margin-top:4px">Sınıf ekledikten sonra istatistikler görünecek</div>
+            <div style="font-weight:700;font-size:.88rem">
+              {{ $sinavSayisi > 0 ? 'Sınav sistemi aktif' : 'Veri bekleniyor' }}
+            </div>
+            <div style="font-size:.78rem;margin-top:4px;line-height:1.7">
+              Öğretmen sınav oluşturduğunda, sınavın sınıf seviyesi öğrencinin sınıfıyla aynıysa öğrenci panelindeki bildirimler ve yaklaşan sınavlar alanında görünür.
+            </div>
           </div>
         </div>
       </div>
@@ -501,7 +570,13 @@ const WD=[
   {d:'Pzt',v:0},{d:'Sal',v:0},{d:'Çar',v:0},
   {d:'Per',v:0},{d:'Cum',v:0},{d:'Cmt',v:0},{d:'Paz',v:0}
 ];
+
+@if($sinavSayisi > 0)
+  WD[0].v = {{ $sinavSayisi }};
+@endif
+
 const COLORS=['#5cc8a8','#1da18a','#3acaaa','#5cc8a8','#1da18a','#3acaaa','#5cc8a8'];
+
 function buildWeeklyChart(){
   const el=document.getElementById('wChart');
   if(!el)return;
