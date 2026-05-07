@@ -11,7 +11,6 @@
 :root{
   --pu:#3d1a8e;--pm:#6c35de;--pl:#9b6dff;--bg:#f4f0ff;
   --td:#1e0e4b;--tm:#5a4a7a;--bd:#ede7ff;--or:#f5a623;
-  --ok:#36c98f;--red:#f04848;
 }
 body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--td)}
 .nav{height:70px;background:#2b0a69;display:flex;align-items:center;justify-content:space-between;padding:0 30px;box-shadow:0 4px 25px rgba(0,0,0,.2)}
@@ -23,8 +22,12 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--td)}
 .hero-top{display:flex;justify-content:space-between;align-items:center;gap:20px}
 .hero h1{font-family:'Baloo 2';font-size:2.1rem;color:var(--pu)}
 .hero p{margin-top:6px;color:var(--tm);font-weight:800}
+.badges{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
 .badge{padding:8px 14px;border-radius:999px;font-weight:900;font-size:.85rem}
-.easy{background:#dcfff0;color:#007847}.medium{background:#fff5d9;color:#8a5b00}.hard{background:#ffe0e0;color:#9b0000}
+.easy{background:#dcfff0;color:#007847}
+.medium{background:#fff5d9;color:#8a5b00}
+.hard{background:#ffe0e0;color:#9b0000}
+.timer-danger{background:#ffe0e0!important;color:#9b0000!important}
 .progress-wrap{margin-top:22px}
 .progress-info{display:flex;justify-content:space-between;font-weight:900;color:var(--tm);margin-bottom:8px}
 .progress-line{height:10px;background:#ece3ff;border-radius:99px;overflow:hidden}
@@ -70,6 +73,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--td)}
 @media(max-width:800px){
   .hero-top,.navigator{flex-direction:column;align-items:stretch}
   .nav-left,.nav-right{justify-content:center}
+  .badges{justify-content:flex-start}
 }
 </style>
 </head>
@@ -99,7 +103,11 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--td)}
       <h1>🚀 {{ $ders }} Testi</h1>
       <p>Kazanım: <strong>{{ $kazanim }}</strong></p>
     </div>
-    <div class="badge easy">{{ $questions->count() }} Soru</div>
+
+    <div class="badges">
+      <div class="badge easy">{{ $questions->count() }} Soru</div>
+      <div class="badge medium" id="timerText">⏱️ {{ $sure ?? 20 }}:00</div>
+    </div>
   </div>
 
   <div class="progress-wrap">
@@ -113,12 +121,14 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--td)}
   </div>
 </div>
 
-<form id="quizForm">
+<form id="quizForm" method="POST" action="{{ route('ogrenci.test.sonuc') }}">
+  @csrf
 
   <div class="question-card">
 
     @foreach($questions as $index => $question)
     <div class="q-slide {{ $index == 0 ? 'active' : '' }}" data-index="{{ $index }}">
+      <input type="hidden" name="question_ids[]" value="{{ $question->id }}">
 
       <div class="q-top">
         <div class="q-number">{{ $index + 1 }}</div>
@@ -195,7 +205,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--td)}
     <p id="modalText">Cevap durumun burada görünecek.</p>
     <div class="modal-actions">
       <button type="button" class="btn btn-soft" onclick="closeModal()">Devam Et</button>
-      <button type="button" class="btn btn-main" onclick="alert('Sonuç hesaplama kısmını sonraki adımda veritabanına bağlayacağız.')">Bitir</button>
+      <button type="submit" form="quizForm" class="btn btn-main">Testi Bitir</button>
     </div>
   </div>
 </div>
@@ -203,6 +213,9 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--td)}
 <script>
 const total = {{ $questions->count() }};
 let current = 0;
+let remainingSeconds = {{ (int) (($sure ?? 20) * 60) }};
+let timerInterval = null;
+let submitted = false;
 
 const slides = document.querySelectorAll('.q-slide');
 const dots = document.querySelectorAll('.dot');
@@ -215,6 +228,8 @@ const nextBtn = document.getElementById('nextBtn');
 const skipBtn = document.getElementById('skipBtn');
 const finishModal = document.getElementById('finishModal');
 const modalText = document.getElementById('modalText');
+const timerText = document.getElementById('timerText');
+const quizForm = document.getElementById('quizForm');
 
 function answeredCount(){
   let count = 0;
@@ -225,6 +240,8 @@ function answeredCount(){
 }
 
 function refresh(){
+  if(total === 0) return;
+
   slides.forEach(s => s.classList.remove('active'));
   dots.forEach(d => d.classList.remove('active'));
 
@@ -247,6 +264,32 @@ function refresh(){
 
   prevBtn.disabled = current === 0;
   nextBtn.disabled = current === total - 1;
+}
+
+function updateTimer(){
+  if(!timerText || !quizForm || submitted) return;
+
+  const minutes = Math.floor(remainingSeconds / 60);
+  const seconds = remainingSeconds % 60;
+
+  timerText.innerText =
+    '⏱️ ' +
+    String(minutes).padStart(2, '0') +
+    ':' +
+    String(seconds).padStart(2, '0');
+
+  if(remainingSeconds <= 60){
+    timerText.classList.add('timer-danger');
+  }
+
+  if(remainingSeconds <= 0){
+    submitted = true;
+    clearInterval(timerInterval);
+    quizForm.submit();
+    return;
+  }
+
+  remainingSeconds--;
 }
 
 prevBtn.addEventListener('click', () => {
@@ -292,6 +335,15 @@ function closeModal(){
   finishModal.style.display = 'none';
 }
 
+quizForm?.addEventListener('submit', () => {
+  submitted = true;
+  if(timerInterval){
+    clearInterval(timerInterval);
+  }
+});
+
+timerInterval = setInterval(updateTimer, 1000);
+updateTimer();
 refresh();
 </script>
 

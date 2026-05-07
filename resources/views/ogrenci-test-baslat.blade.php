@@ -51,6 +51,29 @@ body{font-family:'Nunito',sans-serif;background:linear-gradient(135deg,#f7f3ff,#
 .level-card p{font-size:.8rem;color:var(--tm);font-weight:800;margin-top:3px}
 .level-count{width:100%;margin-top:12px;padding:13px;border-radius:14px;border:1.5px solid var(--bd);font-weight:900;font-size:1rem;color:var(--td)}
 
+.time-box{
+  margin-top:14px;
+  background:linear-gradient(135deg,#fff,#f7f2ff);
+  border:1px solid var(--bd);
+  border-radius:20px;
+  padding:18px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+}
+.time-box h3{font-weight:900;font-size:1rem}
+.time-box p{font-size:.82rem;color:var(--tm);font-weight:800;margin-top:4px}
+.time-input{
+  width:130px;
+  padding:13px;
+  border-radius:14px;
+  border:1.5px solid var(--bd);
+  font-weight:900;
+  font-size:1rem;
+  color:var(--td);
+}
+
 .side{position:sticky;top:86px;background:#fff;border:1px solid var(--bd);border-radius:28px;padding:22px;box-shadow:0 14px 35px rgba(61,26,142,.13)}
 .side h2{font-family:'Baloo 2';font-size:1.45rem;color:var(--pu);margin-bottom:8px}
 .summary{font-weight:900;color:var(--tm);line-height:1.45;margin-bottom:14px}
@@ -69,6 +92,8 @@ body{font-family:'Nunito',sans-serif;background:linear-gradient(135deg,#f7f3ff,#
 @media(max-width:650px){
   .hero{flex-direction:column;align-items:flex-start}
   .grid,.kazanim-grid,.level-grid{grid-template-columns:1fr}
+  .time-box{flex-direction:column;align-items:stretch}
+  .time-input{width:100%}
   .nav{padding:0 18px}
 }
 </style>
@@ -97,6 +122,7 @@ body{font-family:'Nunito',sans-serif;background:linear-gradient(135deg,#f7f3ff,#
     <input type="hidden" name="kolay_sayisi" id="kolayInput" value="2">
     <input type="hidden" name="orta_sayisi" id="ortaInput" value="2">
     <input type="hidden" name="zor_sayisi" id="zorInput" value="1">
+    <input type="hidden" name="sure" id="sureInput" value="20">
 
     <div class="layout">
 
@@ -159,31 +185,40 @@ body{font-family:'Nunito',sans-serif;background:linear-gradient(135deg,#f7f3ff,#
         <div class="step hidden" id="soruDagilimStep">
           <div class="step-head">
             <div class="step-no">3</div>
-            <div class="step-title">Zorluk Dağılımı</div>
+            <div class="step-title">Zorluk ve Süre</div>
           </div>
-          <div class="step-desc">Testte kaç kolay, orta ve zor soru olacağını belirle.</div>
+          <div class="step-desc">Testte kaç soru olacağını ve süreni belirle.</div>
 
           <div class="level-grid">
             <div class="level-card">
-              <div class="icon"></div>
+              <div class="icon">🟢</div>
               <h3>Kolay</h3>
               <p>Temel seviye sorular</p>
               <input type="number" min="0" max="20" value="2" class="level-count" id="kolayCount">
             </div>
 
             <div class="level-card">
-              <div class="icon"></div>
+              <div class="icon">🟡</div>
               <h3>Orta</h3>
               <p>Normal seviye sorular</p>
               <input type="number" min="0" max="20" value="2" class="level-count" id="ortaCount">
             </div>
 
             <div class="level-card">
-              <div class="icon"></div>
+              <div class="icon">🔴</div>
               <h3>Zor</h3>
               <p>Seçici sorular</p>
               <input type="number" min="0" max="20" value="1" class="level-count" id="zorCount">
             </div>
+          </div>
+
+          <div class="time-box">
+            <div>
+              <h3>⏱️ Test Süresi</h3>
+              <p>Test için dakika cinsinden süre belirle.</p>
+            </div>
+
+            <input type="number" min="1" max="180" value="20" id="sureCount" class="time-input">
           </div>
         </div>
 
@@ -210,10 +245,12 @@ let selectedKazanimlar = [];
 const kolayInput = document.getElementById('kolayInput');
 const ortaInput = document.getElementById('ortaInput');
 const zorInput = document.getElementById('zorInput');
+const sureInput = document.getElementById('sureInput');
 
 const kolayCount = document.getElementById('kolayCount');
 const ortaCount = document.getElementById('ortaCount');
 const zorCount = document.getElementById('zorCount');
+const sureCount = document.getElementById('sureCount');
 
 const totalAlert = document.getElementById('totalAlert');
 const summaryText = document.getElementById('summaryText');
@@ -238,6 +275,7 @@ function updateSummary(){
   const orta = parseInt(ortaInput.value || 0);
   const zor = parseInt(zorInput.value || 0);
   const toplam = kolay + orta + zor;
+  const sure = parseInt(sureInput.value || 20);
 
   if(selectedDersler.length === 0){
     summaryText.innerText = 'Önce en az 1 ders seçmelisin.';
@@ -257,12 +295,19 @@ function updateSummary(){
     return;
   }
 
+  if(sure <= 0){
+    summaryText.innerText = 'Test süresi en az 1 dakika olmalı.';
+    submitBtn.disabled = true;
+    return;
+  }
+
   summaryText.innerText =
     selectedDersler.length + ' ders, ' +
     selectedKazanimlar.length + ' kazanım seçildi. ' +
     kolay + ' kolay, ' +
     orta + ' orta, ' +
-    zor + ' zor soru.';
+    zor + ' zor soru. ' +
+    'Süre: ' + sure + ' dakika.';
 
   submitBtn.disabled = false;
 }
@@ -341,6 +386,11 @@ document.querySelectorAll('.kazanim-card').forEach(card => {
 
 [kolayCount, ortaCount, zorCount].forEach(input => {
   input.addEventListener('input', updateTotal);
+});
+
+sureCount.addEventListener('input', () => {
+  sureInput.value = sureCount.value || 20;
+  updateSummary();
 });
 
 filterKazanims();
