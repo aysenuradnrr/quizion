@@ -282,9 +282,10 @@ a{text-decoration:none;color:inherit}
       <a class="ds-ni ac" href="{{ route('ogretmen.dashboard') }}">
         <div class="ds-nicon">🏠</div>Anasayfa
       </a>
-      <a class="ds-ni" href="{{ route('ogretmen.sinav.olustur') }}">
+      <a class="ds-ni" href="{{ route('ogretmen.soru.ekle') }}">
         <div class="ds-nicon">🧠</div>Soru Üretim Merkezi
       </a>
+      
       <a class="ds-ni" href="{{ route('ogretmen.sinav.olustur') }}">
         <div class="ds-nicon">📋</div>Sınav Mimarı
         @if($sinavSayisi > 0)
@@ -423,10 +424,10 @@ a{text-decoration:none;color:inherit}
         </div>
       </div>
       <div class="quick-actions" style="margin-bottom:20px">
-        <a class="qa-btn" href="{{ route('ogretmen.sinav.olustur') }}">
+        <a class="qa-btn" href="{{ route('ogretmen.soru.ekle') }}">
           <div class="qa-icon">🧠</div>
           <div class="qa-title">Soru Üret</div>
-          <div class="qa-desc">Sınav oluşturma ekranından soru seçimine geç</div>
+          <div class="qa-desc">Yeni soru oluştur ve sisteme kaydet</div>
         </a>
 
         <a class="qa-btn" href="{{ route('ogretmen.sinav.olustur') }}">

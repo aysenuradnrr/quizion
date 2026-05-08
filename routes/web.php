@@ -38,12 +38,10 @@ Route::middleware(['auth', 'ogrenci'])->group(function () {
 
     Route::get('/ogrenci/bildirimler', [OgrenciController::class, 'bildirimler'])
         ->name('ogrenci.bildirimler');
-     
+
     Route::get('/ogrenci/sinav-kodu', function () {
         return view('ogrenci-sinav-kodu');
     })->name('ogrenci.sinav.kodu');
-
-
 });
 
 Route::middleware(['auth', 'ogretmen'])->group(function () {
@@ -56,8 +54,11 @@ Route::middleware(['auth', 'ogretmen'])->group(function () {
     Route::post('/ogretmen/sinav-kaydet', [OgretmenController::class, 'sinavKaydet'])
         ->name('ogretmen.sinav.kaydet');
 
+    Route::get('/ogretmen/soru-ekle', [OgretmenController::class, 'soruEkle'])
+        ->name('ogretmen.soru.ekle');
 
-        
+    Route::post('/ogretmen/soru-kaydet', [OgretmenController::class, 'soruKaydet'])
+        ->name('ogretmen.soru.kaydet');
 });
 
 Route::middleware('auth')->group(function () {
