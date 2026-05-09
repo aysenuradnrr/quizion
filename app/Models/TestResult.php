@@ -8,6 +8,7 @@ class TestResult extends Model
 {
     protected $fillable = [
         'user_id',
+        'online_exam_id',
         'total_questions',
         'correct_count',
         'wrong_count',
@@ -18,7 +19,17 @@ class TestResult extends Model
     ];
 
     protected $casts = [
-        'dersler' => 'array',
+        'dersler'    => 'array',
         'kazanimlar' => 'array',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function onlineExam()
+    {
+        return $this->belongsTo(OnlineExam::class);
+    }
 }
