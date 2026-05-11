@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Question;
-use App\Models\Kazanim;
 use App\Models\TestResult;
 use App\Models\OnlineExam;
 use Carbon\Carbon;
@@ -20,18 +19,17 @@ class OgrenciController extends Controller
             ->latest()
             ->get();
 
-        $toplamSinav = $results->count();
+        $toplamSinav    = $results->count();
         $ortalamaBasari = $toplamSinav > 0 ? round($results->avg('score')) : 0;
-        $toplamSoru = $results->sum('total_questions');
+        $toplamSoru     = $results->sum('total_questions');
 
         $haftaBaslangic = Carbon::now()->startOfWeek(Carbon::MONDAY);
         $haftalikAktivite = [];
 
         for ($i = 0; $i < 7; $i++) {
             $gun = $haftaBaslangic->copy()->addDays($i);
-
             $haftalikAktivite[] = [
-                'gun' => ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'][$i],
+                'gun'  => ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'][$i],
                 'soru' => TestResult::where('user_id', $user->id)
                     ->whereDate('created_at', $gun->toDateString())
                     ->sum('total_questions'),
@@ -43,10 +41,11 @@ class OgrenciController extends Controller
         $dersBasariIzlencesi = $this->dersBasariIzlencesi($results);
 
         $yaklasanSinavlar = OnlineExam::where('grade', $user->grade)
-            ->where('is_active', true)
-            ->where('starts_at', '>=', now())
+            ->where(function ($q) {
+                $q->where('is_active', true)
+                  ->orWhere('starts_at', '>=', now());
+            })
             ->orderBy('starts_at')
-            ->take(5)
             ->get();
 
         $bildirimler = $this->bildirimleriHazirla($yaklasanSinavlar);
@@ -67,11 +66,11 @@ class OgrenciController extends Controller
     private function dersBasariIzlencesi($results)
     {
         $dersler = [
-            'Matematik' => '📐',
-            'Fen Bilimleri' => '🧬',
-            'Türkçe' => '📖',
+            'Matematik'       => '📐',
+            'Fen Bilimleri'   => '🧬',
+            'Türkçe'          => '📖',
             'Sosyal Bilgiler' => '🌍',
-            'İngilizce' => '🇬🇧',
+            'İngilizce'       => '🇬🇧',
         ];
 
         return collect($dersler)->map(function ($icon, $ders) use ($results) {
@@ -80,8 +79,8 @@ class OgrenciController extends Controller
             });
 
             return [
-                'icon' => $icon,
-                'name' => $ders,
+                'icon'  => $icon,
+                'name'  => $ders,
                 'score' => $ilgiliSonuclar->count() > 0 ? round($ilgiliSonuclar->avg('score')) : 0,
             ];
         })->values();
@@ -92,16 +91,14 @@ class OgrenciController extends Controller
         return $yaklasanSinavlar->map(function ($sinav) {
             $saatFarki = now()->diffInHours($sinav->starts_at, false);
 
-            if ($saatFarki <= 24) {
-                $mesaj = $sinav->title . ' sınavı yaklaşıyor.';
-            } else {
-                $mesaj = $sinav->title . ' sınavı sınıfına tanımlandı.';
-            }
+            $mesaj = $saatFarki <= 24
+                ? $sinav->title . ' sınavı yaklaşıyor.'
+                : $sinav->title . ' sınavı sınıfına tanımlandı.';
 
             return [
-                'title' => 'Yeni Sınav Bildirimi',
+                'title'   => 'Yeni Sınav Bildirimi',
                 'message' => $mesaj,
-                'time' => $sinav->starts_at->format('d.m.Y H:i'),
+                'time'    => $sinav->starts_at->format('d.m.Y H:i'),
             ];
         });
     }
@@ -111,10 +108,12 @@ class OgrenciController extends Controller
         $user = Auth::user();
 
         $yaklasanSinavlar = OnlineExam::where('grade', $user->grade)
-            ->where('is_active', true)
-            ->where('starts_at', '>=', now())
-            ->orderBy('starts_at')
-            ->get();
+             ->where(function ($q) {
+                 $q->where('is_active', true)
+                   ->orWhere('starts_at', '>=', now());
+    })
+    ->orderBy('starts_at')
+    ->get();
 
         return view('ogrenci-yaklasan-sinavlar', compact('user', 'yaklasanSinavlar'));
     }
@@ -124,45 +123,41 @@ class OgrenciController extends Controller
         $user = Auth::user();
 
         $yaklasanSinavlar = OnlineExam::where('grade', $user->grade)
-            ->where('is_active', true)
-            ->where('starts_at', '>=', now())
-            ->orderBy('starts_at')
-            ->get();
+        ->where(function ($q) {
+            $q->where('is_active', true)
+              ->orWhere('starts_at', '>=', now());
+        })
+        ->orderBy('starts_at')
+        ->get();
 
         $bildirimler = $this->bildirimleriHazirla($yaklasanSinavlar);
 
         return view('ogrenci-bildirimler', compact('user', 'bildirimler'));
     }
 
+    // ── YARDIMCI: Kullanıcı sınıf etiketini üret ──
     private function kullaniciSinifi($user): string
     {
         $sinif = trim((string) $user->grade);
-
-        if (is_numeric($sinif)) {
-            return $sinif . '. Sınıf';
-        }
-
-        return $sinif;
+        return is_numeric($sinif) ? $sinif . '. Sınıf' : $sinif;
     }
 
+    // ── SERBEST TEST BAŞLAT (genel havuzdan) ──
     public function testBaslat()
     {
-        $user = Auth::user();
+        $user  = Auth::user();
         $sinif = $this->kullaniciSinifi($user);
 
         $dersler = collect([
-            'Matematik',
-            'Fen Bilimleri',
-            'Türkçe',
-            'Sosyal Bilgiler',
-            'İngilizce',
+            'Matematik', 'Fen Bilimleri', 'Türkçe', 'Sosyal Bilgiler', 'İngilizce',
         ]);
 
-        $kazanimlar = Kazanim::select('ders', 'kazanim_adi')
-            ->where('sinif', $sinif)
+        // Kazanım modeli yerine questions tablosundan distinct çek
+        $kazanimlar = Question::where('sinif', $sinif)
+            ->select('ders', 'kazanim')
             ->distinct()
             ->orderBy('ders')
-            ->orderBy('kazanim_adi')
+            ->orderBy('kazanim')
             ->get();
 
         return view('ogrenci-test-baslat', compact('user', 'dersler', 'kazanimlar'));
@@ -171,20 +166,20 @@ class OgrenciController extends Controller
     public function testOlustur(Request $request)
     {
         $request->validate([
-            'dersler' => 'required|array|min:1',
-            'dersler.*' => 'required|string',
-            'kazanimlar' => 'required|array|min:1',
+            'dersler'      => 'required|array|min:1',
+            'dersler.*'    => 'required|string',
+            'kazanimlar'   => 'required|array|min:1',
             'kazanimlar.*' => 'required|string',
             'kolay_sayisi' => 'required|integer|min:0|max:20',
-            'orta_sayisi' => 'required|integer|min:0|max:20',
-            'zor_sayisi' => 'required|integer|min:0|max:20',
-            'sure' => 'required|integer|min:1|max:180',
+            'orta_sayisi'  => 'required|integer|min:0|max:20',
+            'zor_sayisi'   => 'required|integer|min:0|max:20',
+            'sure'         => 'required|integer|min:1|max:180',
         ]);
 
-        $user = Auth::user();
+        $user  = Auth::user();
         $sinif = $this->kullaniciSinifi($user);
 
-        $dersler = $request->input('dersler', []);
+        $dersler   = $request->input('dersler', []);
         $kazanimlar = $request->input('kazanimlar', []);
 
         $kolay = Question::where('sinif', $sinif)
@@ -214,16 +209,18 @@ class OgrenciController extends Controller
         $questions = $kolay->merge($orta)->merge($zor)->shuffle()->values();
 
         return view('ogrenci-test-coz', [
-            'user' => $user,
+            'user'      => $user,
             'questions' => $questions,
-            'dersler' => $dersler,
-            'kazanimlar' => $kazanimlar,
-            'ders' => implode(', ', $dersler),
-            'kazanim' => implode(', ', $kazanimlar),
-            'sure' => (int) $request->sure,
+            'dersler'   => $dersler,
+            'kazanimlar'=> $kazanimlar,
+            'ders'      => implode(', ', $dersler),
+            'kazanim'   => implode(', ', $kazanimlar),
+            'sure'      => (int) $request->sure,
+            'sinav_id'  => null, // Serbest test — sınav ID yok
         ]);
     }
 
+    // ── TEST SONUÇ — online_exam_id de kaydediliyor ──
     public function testSonuc(Request $request)
     {
         $questionIds = $request->input('question_ids', []);
@@ -235,9 +232,9 @@ class OgrenciController extends Controller
             })
             ->values();
 
-        $dogru = 0;
+        $dogru  = 0;
         $yanlis = 0;
-        $bos = 0;
+        $bos    = 0;
         $sonuclar = [];
 
         foreach ($questions as $question) {
@@ -255,38 +252,119 @@ class OgrenciController extends Controller
             }
 
             $sonuclar[] = [
-                'soru' => $question,
+                'soru'          => $question,
                 'ogrenci_cevap' => $cevap,
-                'dogru_cevap' => $question->dogru_cevap,
-                'durum' => $durum,
+                'dogru_cevap'   => $question->dogru_cevap,
+                'durum'         => $durum,
             ];
         }
 
         $toplam = $questions->count();
-        $puan = $toplam > 0 ? round(($dogru / $toplam) * 100) : 0;
+        $puan   = $toplam > 0 ? round(($dogru / $toplam) * 100) : 0;
 
+        // online_exam_id: PIN ile girilen sınavdan gelirse dolu olacak
         TestResult::create([
-            'user_id' => Auth::id(),
+            'user_id'         => Auth::id(),
+            'online_exam_id'  => $request->input('online_exam_id') ?: null,
             'total_questions' => $toplam,
-            'correct_count' => $dogru,
-            'wrong_count' => $yanlis,
-            'empty_count' => $bos,
-            'score' => $puan,
-            'dersler' => $request->input('dersler', []),
-            'kazanimlar' => $request->input('kazanimlar', []),
+            'correct_count'   => $dogru,
+            'wrong_count'     => $yanlis,
+            'empty_count'     => $bos,
+            'score'           => $puan,
+            'dersler' => array_filter($request->input('dersler', []), fn($d) => !empty($d)),
+            'kazanimlar'      => $request->input('kazanimlar', []),
         ]);
 
-        $user = Auth::user();
+        $user     = Auth::user();
         $user->xp = (int) $user->xp + ($dogru * 10);
         $user->save();
 
         return view('ogrenci-test-sonuc', compact(
-            'dogru',
-            'yanlis',
-            'bos',
-            'puan',
-            'toplam',
-            'sonuclar'
+            'dogru', 'yanlis', 'bos', 'puan', 'toplam', 'sonuclar'
         ));
     }
+
+    // ── SINAV KODU GİRİŞ SAYFASI (GET) ──
+    public function sinavKoduGir()
+    {
+        return view('ogrenci-sinav-kodu');
+    }
+
+    // ── SINAV KODU DOĞRULA (POST) — artık doğru route'a yönlendiriyor ──
+    public function sinavKoduDogrula(Request $request)
+{
+    $request->validate([
+        'exam_code' => 'required|string|min:4|max:10',
+    ]);
+
+    $sinav = OnlineExam::where('exam_code', strtoupper(trim($request->exam_code)))->first();
+
+    if (!$sinav) {
+        return back()->withErrors(['exam_code' => 'Geçersiz kod. Lütfen tekrar deneyin.'])->withInput();
+    }
+
+    if (!$sinav->is_active) {
+        return back()->withErrors(['exam_code' => 'Sınav henüz başlatılmadı. Öğretmenini bekle.'])->withInput();
+    }
+
+    if ($sinav->isFinished()) {
+        return back()->withErrors(['exam_code' => 'Bu sınavın süresi doldu.'])->withInput();
+    }
+    // sinavKoduDogrula'ya ekle:
+$user = Auth::user();
+if ($sinav->grade && $sinav->grade != $user->grade) {
+    return back()->withErrors(['exam_code' => 'Bu sınav senin sınıfına ait değil.'])->withInput();
+}
+
+    return redirect()->route('ogrenci.sinav.baslat', ['sinav' => $sinav->id]);
+}
+
+    // ── SINAVA ÖZGÜ BAŞLATMA (PIN ile girildi) ──
+   public function sinavBaslat(OnlineExam $sinav)
+{
+    $user = Auth::user();
+
+    if (!$sinav->is_active) {
+        return redirect()->route('ogrenci.sinav.kodu')
+            ->withErrors(['exam_code' => 'Sınav henüz başlatılmadı. Öğretmenini bekle.']);
+    }
+
+    if ($sinav->isFinished()) {
+        return redirect()->route('ogrenci.sinav.kodu')
+            ->withErrors(['exam_code' => 'Bu sınavın süresi doldu.']);
+    }
+
+    // ── 1. DB soruları (question_ids) ──
+    $sorular = collect();
+    $questionIds = $sinav->question_ids ?? [];
+    if (!empty($questionIds)) {
+        $sorular = Question::whereIn('id', $questionIds)
+            ->get()
+            ->sortBy(fn($q) => array_search($q->id, $questionIds))
+            ->values();
+    }
+
+    // ── 2. Manuel sorular ──
+    $manuelSorular = is_array($sinav->manual_questions)
+        ? array_filter($sinav->manual_questions, fn($s) => !empty($s['soru_metni']))
+        : [];
+
+    // ── 3. Görsel sorular ──
+    $gorselSorular = is_array($sinav->image_questions)
+        ? $sinav->image_questions
+        : [];
+
+    // ── Kalan süre ──
+    $kalanSaniye = $sinav->remainingSeconds();
+
+    return view('ogrenci-sinav-coz', [
+        'user'          => $user,
+        'sinav'         => $sinav,
+        'sorular'       => $sorular,
+        'manuelSorular' => $manuelSorular,
+        'gorselSorular' => $gorselSorular,
+        'sure'          => $sinav->duration,
+        'kalanSaniye'   => $kalanSaniye,
+    ]);
+}
 }

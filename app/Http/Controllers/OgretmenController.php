@@ -4,9 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\File;
 use App\Models\OnlineExam;
 use App\Models\Question;
+use App\Models\User;
+use App\Models\TestResult;
 use Illuminate\Support\Str;
 
 class OgretmenController extends Controller
@@ -17,7 +18,7 @@ class OgretmenController extends Controller
 
         $sonSinavlar = OnlineExam::where('teacher_id', $user->id)
             ->latest()
-            ->take(5)
+            ->take(10)
             ->get();
 
         return view('ogretmen', compact('user', 'sonSinavlar'));
@@ -28,9 +29,7 @@ class OgretmenController extends Controller
         $user = Auth::user();
 
         $questions = Question::query()
-            ->when($user->branch, function ($query) use ($user) {
-                $query->where('ders', $user->branch);
-            })
+            ->when($user->branch, fn($q) => $q->where('ders', $user->branch))
             ->latest()
             ->take(80)
             ->get();
@@ -41,44 +40,42 @@ class OgretmenController extends Controller
     public function sinavKaydet(Request $request)
     {
         $request->validate([
-            'title' => 'required|string|max:255',
-            'ders' => 'nullable|string|max:255',
-            'grade' => 'required|string|max:50',
-            'starts_at' => 'required|date',
-            'duration' => 'required|integer|min:1|max:180',
-            'question_ids' => 'nullable|array',
-            'question_ids.*' => 'integer|exists:questions,id',
-            'manual_questions' => 'nullable|array',
-            'manual_questions.*.soru_metni' => 'nullable|string',
-            'manual_questions.*.secenek_a' => 'nullable|string',
-            'manual_questions.*.secenek_b' => 'nullable|string',
-            'manual_questions.*.secenek_c' => 'nullable|string',
-            'manual_questions.*.secenek_d' => 'nullable|string',
+            'title'                          => 'required|string|max:255',
+            'ders'                           => 'nullable|string|max:255',
+            'grade'                          => 'required|string|max:50',
+            'starts_at'                      => 'required|date',
+            'duration'                       => 'required|integer|min:1|max:180',
+            'question_ids'                   => 'nullable|array',
+            'question_ids.*'                 => 'integer|exists:questions,id',
+            'manual_questions'               => 'nullable|array',
+            'manual_questions.*.soru_metni'  => 'nullable|string',
+            'manual_questions.*.secenek_a'   => 'nullable|string',
+            'manual_questions.*.secenek_b'   => 'nullable|string',
+            'manual_questions.*.secenek_c'   => 'nullable|string',
+            'manual_questions.*.secenek_d'   => 'nullable|string',
             'manual_questions.*.dogru_cevap' => 'nullable|string|in:A,B,C,D',
-            'image_questions' => 'nullable|array',
-            'image_questions.*' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
+            'image_questions'                => 'nullable|array',
+            'image_questions.*'              => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
         ]);
 
         $manualQuestions = collect($request->input('manual_questions', []))
-            ->filter(fn ($item) => !empty($item['soru_metni']))
-            ->map(fn ($item) => [
-                'soru_metni' => $item['soru_metni'] ?? '',
-                'secenek_a' => $item['secenek_a'] ?? '',
-                'secenek_b' => $item['secenek_b'] ?? '',
-                'secenek_c' => $item['secenek_c'] ?? '',
-                'secenek_d' => $item['secenek_d'] ?? '',
+            ->filter(fn($item) => !empty($item['soru_metni']))
+            ->map(fn($item) => [
+                'soru_metni'  => $item['soru_metni']  ?? '',
+                'secenek_a'   => $item['secenek_a']   ?? '',
+                'secenek_b'   => $item['secenek_b']   ?? '',
+                'secenek_c'   => $item['secenek_c']   ?? '',
+                'secenek_d'   => $item['secenek_d']   ?? '',
                 'dogru_cevap' => $item['dogru_cevap'] ?? '',
             ])
-            ->values()
-            ->toArray();
+            ->values()->toArray();
 
         $imageQuestions = [];
-
         if ($request->hasFile('image_questions')) {
             foreach ($request->file('image_questions') as $file) {
                 if ($file) {
                     $imageQuestions[] = [
-                        'path' => $file->store('exam-question-images', 'public'),
+                        'path'          => $file->store('exam-question-images', 'public'),
                         'original_name' => $file->getClientOriginalName(),
                     ];
                 }
@@ -86,83 +83,176 @@ class OgretmenController extends Controller
         }
 
         OnlineExam::create([
-            'teacher_id' => Auth::id(),
-            'title' => $request->title,
-            'ders' => $request->ders,
-            'grade' => $request->grade,
-            'starts_at' => $request->starts_at,
-            'duration' => $request->duration,
-            'exam_code' => strtoupper(Str::random(6)),
-            'question_ids' => $request->input('question_ids', []),
+            'teacher_id'       => Auth::id(),
+            'title'            => $request->title,
+            'ders'             => $request->ders,
+            'grade'            => $request->grade,
+            'starts_at'        => $request->starts_at,
+            'duration'         => $request->duration,
+            'exam_code'        => strtoupper(Str::random(6)),
+            'question_ids'     => $request->input('question_ids', []),
             'manual_questions' => $manualQuestions,
-            'image_questions' => $imageQuestions,
-            'is_active' => true,
+            'image_questions'  => $imageQuestions,
+            'is_active'        => false,
+            'started_at'       => null,
         ]);
 
         return redirect()
             ->route('ogretmen.dashboard')
-            ->with('success', 'Sınav oluşturuldu.');
+            ->with('success', 'Sınav oluşturuldu! Panelden "Sınavı Başlat" butonuna bas.');
+    }
+
+    public function sinavBaslat(Request $request, OnlineExam $sinav)
+    {
+        abort_if($sinav->teacher_id !== Auth::id(), 403);
+
+        $sinav->update([
+            'is_active'  => true,
+            'started_at' => now(),
+        ]);
+
+        return back()->with('success', 'Sınav başlatıldı! Öğrenciler artık girebilir.');
+    }
+
+    public function sinavDurdur(Request $request, OnlineExam $sinav)
+    {
+        abort_if($sinav->teacher_id !== Auth::id(), 403);
+
+        $sinav->update([
+    'is_active'  => false,
+    // started_at'e dokunma — süre hesabı için lazım
+]);
+    
+
+        return back()->with('success', 'Sınav durduruldu.');
     }
 
     public function soruEkle()
     {
-        $user = Auth::user();
-
-        return view('ogretmen-soru-ekle', compact('user'));
+        return view('ogretmen-soru-ekle', ['user' => Auth::user()]);
     }
 
     public function soruKaydet(Request $request)
     {
         $request->validate([
-            'sinif' => 'required|string|max:50',
-            'ders' => 'required|string|max:255',
-            'kazanim' => 'required|string|max:255',
-            'zorluk' => 'required|string|in:Kolay,Orta,Zor',
-            'soru_metni' => 'nullable|string',
-            'gorsel' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
-            'secenek_a' => 'required|string',
-            'secenek_b' => 'required|string',
-            'secenek_c' => 'required|string',
-            'secenek_d' => 'required|string',
+            'sinif'       => 'required|string|max:50',
+            'ders'        => 'required|string|max:255',
+            'kazanim'     => 'required|string|max:255',
+            'zorluk'      => 'required|string|in:Kolay,Orta,Zor',
+            'soru_metni'  => 'nullable|string',
+            'gorsel'      => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
+            'secenek_a'   => 'required|string',
+            'secenek_b'   => 'required|string',
+            'secenek_c'   => 'required|string',
+            'secenek_d'   => 'required|string',
             'dogru_cevap' => 'required|string|in:A,B,C,D',
         ]);
 
         $gorselYolu = null;
-
         if ($request->hasFile('gorsel')) {
             $gorselYolu = 'storage/' . $request->file('gorsel')->store('system-question-images', 'public');
         }
 
         if (!$request->filled('soru_metni') && !$gorselYolu) {
-            return back()
-                ->withInput()
+            return back()->withInput()
                 ->withErrors(['soru_metni' => 'Soru metni yazmalı ya da görsel eklemelisiniz.']);
         }
 
-        $dosyaYolu = base_path('system_questions.php');
-
-        $sorular = File::exists($dosyaYolu)
-            ? include $dosyaYolu
-            : [];
-
-        $sorular[] = [
-            'sinif' => $request->sinif,
-            'ders' => $request->ders,
-            'kazanim' => $request->kazanim,
-            'zorluk' => $request->zorluk,
-            'soru_metni' => $request->soru_metni ?? '',
-            'gorsel' => $gorselYolu,
-            'secenek_a' => $request->secenek_a,
-            'secenek_b' => $request->secenek_b,
-            'secenek_c' => $request->secenek_c,
-            'secenek_d' => $request->secenek_d,
+        Question::create([
+            'sinif'       => $request->sinif,
+            'teacher_id'  => Auth::id(),
+            'ders'        => $request->ders,
+            'kazanim'     => $request->kazanim,
+            'zorluk'      => $request->zorluk,
+            'soru_metni'  => $request->soru_metni ?? '',
+            'gorsel'      => $gorselYolu,
+            'secenek_a'   => $request->secenek_a,
+            'secenek_b'   => $request->secenek_b,
+            'secenek_c'   => $request->secenek_c,
+            'secenek_d'   => $request->secenek_d,
             'dogru_cevap' => $request->dogru_cevap,
-        ];
+        ]);
 
-        $icerik = "<?php\n\nreturn " . var_export($sorular, true) . ";\n";
+        return back()->with('success', 'Soru başarıyla eklendi.');
+    }
 
-        File::put($dosyaYolu, $icerik);
+    public function analizOdasi()
+    {
+        $user     = Auth::user();
+        $sinavlar = OnlineExam::where('teacher_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
 
-        return back()->with('success', 'Soru system_questions.php dosyasına başarıyla eklendi.');
+        $ozet = [];
+        foreach ($sinavlar as $s) {
+            $sonuclar = TestResult::where('online_exam_id', $s->id)
+                ->with('user')
+                ->get();
+
+            $liderler = $sonuclar->sortByDesc('score')->take(3)->values()
+                ->map(fn($r, $i) => [
+                    'sira'   => $i + 1,
+                    'isim'   => optional($r->user)->fullName() ?? 'Bilinmiyor',
+                    'puan'   => $r->score,
+                    'dogru'  => $r->correct_count,
+                    'yanlis' => $r->wrong_count,
+                    'bos'    => $r->empty_count,
+                ]);
+
+            $ozet[$s->id] = [
+                'katilimci' => $sonuclar->count(),
+                'ortalama'  => $sonuclar->count() > 0 ? round($sonuclar->avg('score'), 1) : 0,
+                'en_yuksek' => $sonuclar->max('score') ?? 0,
+                'liderler'  => $liderler,
+                'detay'     => $sonuclar->sortByDesc('score')->map(fn($r) => [
+                    'isim'   => optional($r->user)->fullName() ?? 'Bilinmiyor',
+                    'dogru'  => $r->correct_count,
+                    'yanlis' => $r->wrong_count,
+                    'bos'    => $r->empty_count,
+                    'puan'   => $r->score,
+                    'tarih'  => $r->created_at->format('d.m.Y H:i'),
+                ])->toArray(),
+            ];
+        }
+
+        return view('ogretmen-analiz', compact('user', 'sinavlar', 'ozet'));
+    }
+
+    public function sinifYonetimi()
+    {
+        $user = Auth::user();
+
+        $sinavlar = OnlineExam::where('teacher_id', $user->id)
+            ->orderBy('grade')->orderBy('starts_at')
+            ->get()->groupBy('grade');
+
+        $ogrenciler = User::where('role', 'ogrenci')
+            ->where('teacher_id', $user->id)
+            ->orderBy('grade')->orderBy('name')
+            ->get()->groupBy('grade');
+
+        return view('ogretmen-sinif', compact('user', 'sinavlar', 'ogrenciler'));
+    }
+
+    public function profil()
+    {
+        return view('ogretmen-profil', ['user' => Auth::user()]);
+    }
+
+    public function profilGuncelle(Request $request)
+    {
+        $request->validate([
+            'name'   => 'required|string|max:100',
+            'branch' => 'nullable|string|max:100',
+            'email'  => 'required|email|max:255',
+        ]);
+
+        $user         = Auth::user();
+        $user->name   = $request->name;
+        $user->branch = $request->branch;
+        $user->email  = $request->email;
+        $user->save();
+
+        return back()->with('success', 'Profil güncellendi.');
     }
 }

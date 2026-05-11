@@ -14,13 +14,15 @@ Route::post('/review', [ReviewController::class, 'store'])->name('review.store')
 Route::get('/', [WelcomeController::class, 'index'])->name('home');
 
 Route::post('/register', [RegisteredUserController::class, 'store'])->name('register');
-Route::post('/login', [AuthenticatedSessionController::class, 'store'])->name('login');
+Route::post('/login',    [AuthenticatedSessionController::class, 'store'])->name('login');
 
 Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
     ->middleware('auth')
     ->name('logout');
 
+// ── ÖĞRENCİ ROUTE'LARI ──────────────────────────────────
 Route::middleware(['auth', 'ogrenci'])->group(function () {
+
     Route::get('/ogrenci/dashboard', [OgrenciController::class, 'dashboard'])
         ->name('ogrenci.dashboard');
 
@@ -39,12 +41,23 @@ Route::middleware(['auth', 'ogrenci'])->group(function () {
     Route::get('/ogrenci/bildirimler', [OgrenciController::class, 'bildirimler'])
         ->name('ogrenci.bildirimler');
 
-    Route::get('/ogrenci/sinav-kodu', function () {
-        return view('ogrenci-sinav-kodu');
-    })->name('ogrenci.sinav.kodu');
+    // Sınav kodu sistemi
+    Route::get('/ogrenci/sinav-kodu', [OgrenciController::class, 'sinavKoduGir'])
+        ->name('ogrenci.sinav.kodu');
+
+    Route::post('/ogrenci/sinav-kodu/dogrula', [OgrenciController::class, 'sinavKoduDogrula'])
+        ->name('ogrenci.sinav.kodu.dogrula');
+
+    // DÜZELTME: PIN doğrulandıktan sonra buraya yönlendiriliyor
+    // Eski: ogrenci.test.baslat (genel sayfaya düşüyordu)
+    // Yeni: ogrenci.sinav.baslat (sınava özgü soruları yükler)
+    Route::get('/ogrenci/sinav/{sinav}/baslat', [OgrenciController::class, 'sinavBaslat'])
+        ->name('ogrenci.sinav.baslat');
 });
 
+// ── ÖĞRETMEN ROUTE'LARI ─────────────────────────────────
 Route::middleware(['auth', 'ogretmen'])->group(function () {
+
     Route::get('/ogretmen/dashboard', [OgretmenController::class, 'dashboard'])
         ->name('ogretmen.dashboard');
 
@@ -59,8 +72,26 @@ Route::middleware(['auth', 'ogretmen'])->group(function () {
 
     Route::post('/ogretmen/soru-kaydet', [OgretmenController::class, 'soruKaydet'])
         ->name('ogretmen.soru.kaydet');
+
+    Route::get('/ogretmen/analiz', [OgretmenController::class, 'analizOdasi'])
+        ->name('ogretmen.analiz');
+
+    Route::get('/ogretmen/sinif', [OgretmenController::class, 'sinifYonetimi'])
+        ->name('ogretmen.sinif');
+
+    Route::get('/ogretmen/profil', [OgretmenController::class, 'profil'])
+        ->name('ogretmen.profil');
+
+    Route::post('/ogretmen/profil', [OgretmenController::class, 'profilGuncelle'])
+        ->name('ogretmen.profil.guncelle');
+    Route::post('/ogretmen/sinav/{sinav}/baslat', [OgretmenController::class, 'sinavBaslat'])
+            ->name('ogretmen.sinav.baslat');
+
+    Route::post('/ogretmen/sinav/{sinav}/durdur', [OgretmenController::class, 'sinavDurdur'])
+            ->name('ogretmen.sinav.durdur');
 });
 
+// ── GENEL PROFİL ─────────────────────────────────────────
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
