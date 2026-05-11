@@ -88,7 +88,7 @@ class OgretmenController extends Controller
             'ders'             => $request->ders,
             'grade'            => $request->grade,
             'starts_at'        => $request->starts_at,
-            'duration'         => $request->duration,
+            'duration'         => (int) $request->duration,
             'exam_code'        => strtoupper(Str::random(6)),
             'question_ids'     => $request->input('question_ids', []),
             'manual_questions' => $manualQuestions,
@@ -119,10 +119,9 @@ class OgretmenController extends Controller
         abort_if($sinav->teacher_id !== Auth::id(), 403);
 
         $sinav->update([
-    'is_active'  => false,
-    // started_at'e dokunma — süre hesabı için lazım
-]);
-    
+            'is_active' => false,
+            // started_at'e dokunma — süre hesabı için lazım
+        ]);
 
         return back()->with('success', 'Sınav durduruldu.');
     }
@@ -189,10 +188,11 @@ class OgretmenController extends Controller
                 ->with('user')
                 ->get();
 
+            // ── Liderlik tablosu — key adı 'isim' (blade ile tutarlı) ──
             $liderler = $sonuclar->sortByDesc('score')->take(3)->values()
                 ->map(fn($r, $i) => [
                     'sira'   => $i + 1,
-                    'isim'   => optional($r->user)->fullName() ?? 'Bilinmiyor',
+                    'isim'   => optional($r->user)->fullName() ?? 'Bilinmiyor',  // 'ad' değil 'isim'
                     'puan'   => $r->score,
                     'dogru'  => $r->correct_count,
                     'yanlis' => $r->wrong_count,
