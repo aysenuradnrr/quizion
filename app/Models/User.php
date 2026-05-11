@@ -10,7 +10,7 @@ class User extends Authenticatable {
 
     protected $fillable = [
         'name', 'surname', 'email', 'password',
-        'role', 'grade', 'branch', 'xp', 'streak',
+        'role', 'grade', 'branch', 'xp', 'streak', 'is_admin',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -18,7 +18,8 @@ class User extends Authenticatable {
     protected function casts(): array {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'password'          => 'hashed',
+            'is_admin'          => 'boolean',
         ];
     }
 
@@ -28,6 +29,10 @@ class User extends Authenticatable {
 
     public function isOgretmen(): bool {
         return $this->role === 'ogretmen';
+    }
+
+    public function isAdmin(): bool {
+        return (bool) $this->is_admin;
     }
 
     public function fullName(): string {

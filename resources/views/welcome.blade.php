@@ -253,10 +253,9 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--td);overfl
 .ff-role-btn{padding:6px 14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:9px;color:rgba(255,255,255,.6);font-family:'Nunito',sans-serif;font-size:.78rem;font-weight:700;cursor:pointer;transition:var(--tr)}
 .ff-role-btn:hover{background:rgba(255,255,255,.1);color:#fff}
 .ff-role-btn.sel{background:rgba(245,166,35,.18);border-color:rgba(245,166,35,.4);color:#ffd080}
-.ff-star-row{display:flex;align-items:center;gap:4px;margin-bottom:12px}
-.ff-star-lbl{font-size:.78rem;color:rgba(255,255,255,.5);font-weight:700;margin-right:6px}
-.ff-star{font-size:1.4rem;cursor:pointer;filter:grayscale(1);opacity:.4;transition:var(--tr);background:none;border:none;color:#f5a623;padding:0}
-.ff-star.active{filter:none;opacity:1}
+.ff-star{font-size:1.6rem;cursor:pointer;filter:grayscale(1);opacity:.35;transition:var(--tr);background:none;border:none;color:#f5a623;padding:0 2px}
+.ff-star.active{filter:none;opacity:1;transform:scale(1.1)}
+.ff-star:hover{filter:none;opacity:.8}
 .ff-grid{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:center}
 .ff-input{width:100%;padding:9px 12px;border:1.5px solid rgba(255,255,255,.12);border-radius:9px;font-family:'Nunito',sans-serif;font-size:.84rem;color:#fff;background:rgba(255,255,255,.07);outline:none;transition:var(--tr)}
 .ff-input:focus{border-color:var(--pl);background:rgba(255,255,255,.12)}
@@ -573,16 +572,23 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--td);overfl
         </div>
         <input type="hidden" name="role" id="ffRoleInput" value="Öğrenci"/>
 
-        {{-- Yıldız --}}
-        <div class="ff-star-row">
-          <span class="ff-star-lbl">Puan:</span>
-          <button type="button" class="ff-star" data-v="1" onclick="setFfStar(1)">★</button>
-          <button type="button" class="ff-star" data-v="2" onclick="setFfStar(2)">★</button>
-          <button type="button" class="ff-star" data-v="3" onclick="setFfStar(3)">★</button>
-          <button type="button" class="ff-star" data-v="4" onclick="setFfStar(4)">★</button>
-          <button type="button" class="ff-star active" data-v="5" onclick="setFfStar(5)">★</button>
+        {{-- Yıldız Seçimi --}}
+        <div style="margin-bottom:12px">
+         <div style="font-size:.78rem;color:rgba(255,255,255,.6);font-weight:700;margin-bottom:8px">
+           Değerlendirmeniz (zorunlu)
+         </div>
+         <div style="display:flex;align-items:center;gap:6px">
+           <button type="button" class="ff-star" data-v="1" onclick="setFfStar(1)">★</button>
+           <button type="button" class="ff-star" data-v="2" onclick="setFfStar(2)">★</button>
+           <button type="button" class="ff-star" data-v="3" onclick="setFfStar(3)">★</button>
+           <button type="button" class="ff-star" data-v="4" onclick="setFfStar(4)">★</button>
+           <button type="button" class="ff-star" data-v="5" onclick="setFfStar(5)">★</button>
+           <span id="ffStarText" style="font-size:.8rem;color:rgba(255,255,255,.5);font-weight:700;margin-left:6px">
+            Seçiniz
+           </span>
+         </div>
+         <input type="hidden" name="star" id="ffStarInput" value=""/>
         </div>
-        <input type="hidden" name="star" id="ffStarInput" value="5"/>
 
         {{-- Ad + Mesaj + Gönder --}}
         <div class="ff-grid">
@@ -672,10 +678,14 @@ function setFfRole(r){
   if(el)el.classList.add('sel');
 }
 
-/* FOOTER YILDIZ */
-function setFfStar(v){
-  document.getElementById('ffStarInput').value=v;
-  document.querySelectorAll('.ff-star').forEach(b=>{b.classList.toggle('active',+b.dataset.v<=v);});
+function setFfStar(v) {
+  document.getElementById('ffStarInput').value = v;
+  document.querySelectorAll('.ff-star').forEach(b => {
+    b.classList.toggle('active', +b.dataset.v <= v);
+  });
+  const labels = ['', 'Çok Kötü', 'Kötü', 'Orta', 'İyi', 'Mükemmel'];
+  const el = document.getElementById('ffStarText');
+  if (el) el.textContent = labels[v];
 }
 
 /* TOAST */

@@ -12,6 +12,7 @@ class ReviewController extends Controller
             'name'    => ['required', 'string', 'max:100'],
             'message' => ['required', 'string', 'min:5', 'max:500'],
             'star'    => ['required', 'integer', 'min:1', 'max:5'],
+            'role'    => ['nullable', 'string', 'max:50'],
         ]);
 
         Review::create([

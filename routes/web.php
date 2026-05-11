@@ -8,7 +8,7 @@ use App\Http\Controllers\OgretmenController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\WelcomeController;
-
+use App\Http\Controllers\AdminController;
 Route::post('/review', [ReviewController::class, 'store'])->name('review.store');
 
 Route::get('/', [WelcomeController::class, 'index'])->name('home');
@@ -65,4 +65,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+Route::middleware(['auth','admin'])->prefix('admin')->group(function(){
+    Route::get('/',                         [AdminController::class,'index'])->name('admin.index');
+    Route::delete('/review/{id}',           [AdminController::class,'deleteReview'])->name('admin.review.delete');
+    Route::patch('/review/{id}/toggle',     [AdminController::class,'toggleReview'])->name('admin.review.toggle');
+    Route::delete('/user/{id}',             [AdminController::class,'deleteUser'])->name('admin.user.delete');
+    Route::patch('/user/{id}/toggle-admin', [AdminController::class,'toggleAdmin'])->name('admin.user.toggle');
+    Route::patch('/user/{id}/role',         [AdminController::class,'updateRole'])->name('admin.user.role');
+    Route::delete('/exam/{id}',             [AdminController::class,'deleteExam'])->name('admin.exam.delete');
 });
