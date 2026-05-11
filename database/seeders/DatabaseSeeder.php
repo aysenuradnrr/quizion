@@ -2,31 +2,38 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use App\Models\Question;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
     public function run(): void
     {
-        User::updateOrCreate(
-            ['email' => 'test@example.com'],
-            [
-                'name' => 'Test',
-                'surname' => 'User',
-                'password' => bcrypt('password'),
-                'role' => 'ogrenci',
-                'grade' => '7.Sınıf',
-                'branch' => 'A',
-            ]
-        );
+        $questionsPath = database_path('seeders/system_questions.php');
+        if (!file_exists($questionsPath)) {
+            $this->command->warn('system_questions.php dosyası bulunamadı.');
+            return;
+        }
 
-        $this->call([
-            KazanimSeeder::class,
-            QuestionSeeder::class,
-        ]);
+        $questions = include $questionsPath;
+
+        foreach ($questions as $question) {
+            Question::updateOrCreate(
+                [
+                    'sinif' => $question['sinif'],
+                    'ders' => $question['ders'],
+                    'kazanim' => $question['kazanim'],
+                    'soru_metni' => $question['soru_metni'],
+                ],
+                [
+                    'zorluk' => $question['zorluk'],
+                    'secenek_a' => $question['secenek_a'],
+                    'secenek_b' => $question['secenek_b'],
+                    'secenek_c' => $question['secenek_c'],
+                    'secenek_d' => $question['secenek_d'],
+                    'dogru_cevap' => $question['dogru_cevap'],
+                ]
+            );
+        }
     }
 }
