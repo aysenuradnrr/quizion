@@ -40,7 +40,10 @@ class OgrenciController extends Controller
 
         $dersBasariIzlencesi = $this->dersBasariIzlencesi($results);
 
-        $yaklasanSinavlar = OnlineExam::where('grade', (string) $user->grade)
+        $yaklasanSinavlar = OnlineExam::where(function ($q) use ($user) {
+                $q->where('grade', (string) $user->grade)
+                  ->orWhere('grade', $this->sinifNumarasi($user->grade));
+            })
             ->where(function ($q) {
                 $q->where('is_active', true)
                   ->orWhere('starts_at', '>=', now());
@@ -107,7 +110,10 @@ class OgrenciController extends Controller
     {
         $user = Auth::user();
 
-        $yaklasanSinavlar = OnlineExam::where('grade', (string) $user->grade)
+        $yaklasanSinavlar = OnlineExam::where(function ($q) use ($user) {
+                $q->where('grade', (string) $user->grade)
+                  ->orWhere('grade', $this->sinifNumarasi($user->grade));
+            })
             ->where(function ($q) {
                 $q->where('is_active', true)
                   ->orWhere('starts_at', '>=', now());
@@ -122,7 +128,10 @@ class OgrenciController extends Controller
     {
         $user = Auth::user();
 
-        $yaklasanSinavlar = OnlineExam::where('grade', (string) $user->grade)
+        $yaklasanSinavlar = OnlineExam::where(function ($q) use ($user) {
+                $q->where('grade', (string) $user->grade)
+                  ->orWhere('grade', $this->sinifNumarasi($user->grade));
+            })
             ->where(function ($q) {
                 $q->where('is_active', true)
                   ->orWhere('starts_at', '>=', now());
@@ -133,6 +142,17 @@ class OgrenciController extends Controller
         $bildirimler = $this->bildirimleriHazirla($yaklasanSinavlar);
 
         return view('ogrenci-bildirimler', compact('user', 'bildirimler'));
+    }
+
+    private function sinifNumarasi($deger): string
+    {
+        preg_match('/\d+/', (string) $deger, $eslesme);
+        return $eslesme[0] ?? trim((string) $deger);
+    }
+
+    private function siniflarEslesiyor($ogrenciSinifi, $sinavSinifi): bool
+    {
+        return $this->sinifNumarasi($ogrenciSinifi) === $this->sinifNumarasi($sinavSinifi);
     }
 
     // ── YARDIMCI: Kullanıcı sınıf etiketini üret ──
@@ -235,31 +255,134 @@ class OgrenciController extends Controller
         $yanlis = 0;
         $bos    = 0;
         $sonuclar = [];
+        $yanlisKazanimlar = [];
 
+        // 1) Soru bankasından gelen sorular
         foreach ($questions as $question) {
             $cevap = $request->input('soru_' . $question->id);
+            $dogruCevap = $question->dogru_cevap;
 
             if (!$cevap) {
                 $bos++;
                 $durum = 'Boş';
-            } elseif ($cevap === $question->dogru_cevap) {
+            } elseif ($cevap === $dogruCevap) {
                 $dogru++;
                 $durum = 'Doğru';
             } else {
                 $yanlis++;
                 $durum = 'Yanlış';
+                if (!empty($question->kazanim)) {
+                    $yanlisKazanimlar[] = $question->kazanim;
+                }
             }
 
             $sonuclar[] = [
+                'tip'           => 'db',
                 'soru'          => $question,
+                'soru_metni'    => $question->soru_metni,
+                'secenek_a'     => $question->secenek_a,
+                'secenek_b'     => $question->secenek_b,
+                'secenek_c'     => $question->secenek_c,
+                'secenek_d'     => $question->secenek_d,
                 'ogrenci_cevap' => $cevap,
-                'dogru_cevap'   => $question->dogru_cevap,
+                'dogru_cevap'   => $dogruCevap,
+                'kazanim'       => $question->kazanim,
                 'durum'         => $durum,
             ];
         }
 
-        $toplam = $questions->count();
+        // 2) Öğretmenin manuel eklediği sorular
+        foreach ($request->input('manual_questions', []) as $index => $item) {
+            if (empty($item['soru_metni'])) {
+                continue;
+            }
+
+            $cevap = $request->input('manuel_' . $index);
+            $dogruCevap = $item['dogru_cevap'] ?? '';
+
+            if (!$cevap) {
+                $bos++;
+                $durum = 'Boş';
+            } elseif ($dogruCevap !== '' && $cevap === $dogruCevap) {
+                $dogru++;
+                $durum = 'Doğru';
+            } else {
+                $yanlis++;
+                $durum = 'Yanlış';
+                if (!empty($item['kazanim'])) {
+                    $yanlisKazanimlar[] = $item['kazanim'];
+                }
+            }
+
+            $sonuclar[] = [
+                'tip'           => 'manuel',
+                'soru'          => null,
+                'soru_metni'    => $item['soru_metni'] ?? '',
+                'secenek_a'     => $item['secenek_a'] ?? '',
+                'secenek_b'     => $item['secenek_b'] ?? '',
+                'secenek_c'     => $item['secenek_c'] ?? '',
+                'secenek_d'     => $item['secenek_d'] ?? '',
+                'ogrenci_cevap' => $cevap,
+                'dogru_cevap'   => $dogruCevap,
+                'kazanim'       => $item['kazanim'] ?? '',
+                'durum'         => $durum,
+            ];
+        }
+
+        // 3) Görsel sorular
+        foreach ($request->input('image_questions', []) as $index => $item) {
+            if (empty($item['path']) && empty($item['soru_metni'])) {
+                continue;
+            }
+
+            $cevap = $request->input('gorsel_' . $index);
+            $dogruCevap = $item['dogru_cevap'] ?? '';
+
+            if (!$cevap) {
+                $bos++;
+                $durum = 'Boş';
+            } elseif ($dogruCevap !== '' && $cevap === $dogruCevap) {
+                $dogru++;
+                $durum = 'Doğru';
+            } else {
+                $yanlis++;
+                $durum = 'Yanlış';
+                if (!empty($item['kazanim'])) {
+                    $yanlisKazanimlar[] = $item['kazanim'];
+                }
+            }
+
+            $sonuclar[] = [
+                'tip'           => 'gorsel',
+                'soru'          => null,
+                'soru_metni'    => $item['soru_metni'] ?? 'Görsel soru',
+                'gorsel'        => $item['path'] ?? '',
+                'secenek_a'     => $item['secenek_a'] ?? '',
+                'secenek_b'     => $item['secenek_b'] ?? '',
+                'secenek_c'     => $item['secenek_c'] ?? '',
+                'secenek_d'     => $item['secenek_d'] ?? '',
+                'ogrenci_cevap' => $cevap,
+                'dogru_cevap'   => $dogruCevap,
+                'kazanim'       => $item['kazanim'] ?? '',
+                'durum'         => $durum,
+            ];
+        }
+
+        $toplam = count($sonuclar);
         $puan   = $toplam > 0 ? round(($dogru / $toplam) * 100) : 0;
+
+        $kazanimlar = collect($sonuclar)
+            ->pluck('kazanim')
+            ->filter()
+            ->unique()
+            ->values()
+            ->toArray();
+
+        $yanlisKazanimlar = collect($yanlisKazanimlar)
+            ->filter()
+            ->countBy()
+            ->sortDesc()
+            ->toArray();
 
         TestResult::create([
             'user_id'         => Auth::id(),
@@ -270,7 +393,7 @@ class OgrenciController extends Controller
             'empty_count'     => $bos,
             'score'           => $puan,
             'dersler'         => array_filter($request->input('dersler', []), fn($d) => !empty($d)),
-            'kazanimlar'      => $request->input('kazanimlar', []),
+            'kazanimlar'      => $kazanimlar,
         ]);
 
         $user     = Auth::user();
@@ -278,7 +401,7 @@ class OgrenciController extends Controller
         $user->save();
 
         return view('ogrenci-test-sonuc', compact(
-            'dogru', 'yanlis', 'bos', 'puan', 'toplam', 'sonuclar'
+            'dogru', 'yanlis', 'bos', 'puan', 'toplam', 'sonuclar', 'yanlisKazanimlar'
         ));
     }
 
@@ -309,10 +432,11 @@ class OgrenciController extends Controller
             return back()->withErrors(['exam_code' => 'Bu sınavın süresi doldu.'])->withInput();
         }
 
-        // ── Sınıf kontrolü: string karşılaştırması (tip uyuşmazlığını önler) ──
         $user = Auth::user();
-        if ($sinav->grade !== null && (string) $sinav->grade !== (string) $user->grade) {
-            return back()->withErrors(['exam_code' => 'Bu sınav senin sınıfına ait değil. (Sınıfın: ' . $user->grade . ', Sınav sınıfı: ' . $sinav->grade . ')'])->withInput();
+        if ($sinav->grade !== null && !$this->siniflarEslesiyor($user->grade, $sinav->grade)) {
+            return back()->withErrors([
+                'exam_code' => 'Bu sınav senin sınıfına ait değil. (Sınıfın: ' . $user->grade . ', Sınav sınıfı: ' . $sinav->grade . ')'
+            ])->withInput();
         }
 
         return redirect()->route('ogrenci.sinav.baslat', ['sinav' => $sinav->id]);
@@ -331,6 +455,11 @@ class OgrenciController extends Controller
         if ($sinav->isFinished()) {
             return redirect()->route('ogrenci.sinav.kodu')
                 ->withErrors(['exam_code' => 'Bu sınavın süresi doldu.']);
+        }
+
+        if ($sinav->grade !== null && !$this->siniflarEslesiyor($user->grade, $sinav->grade)) {
+            return redirect()->route('ogrenci.sinav.kodu')
+                ->withErrors(['exam_code' => 'Bu sınav senin sınıfına ait değil.']);
         }
 
         // ── 1. DB soruları (question_ids) ──

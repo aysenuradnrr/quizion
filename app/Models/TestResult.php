@@ -30,6 +30,6 @@ class TestResult extends Model
 
     public function onlineExam()
     {
-        return $this->belongsTo(OnlineExam::class);
+        return $this->belongsTo(OnlineExam::class, 'online_exam_id');
     }
 }

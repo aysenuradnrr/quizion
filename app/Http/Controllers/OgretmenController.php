@@ -19,7 +19,9 @@ class OgretmenController extends Controller
         $sonSinavlar = OnlineExam::where('teacher_id', $user->id)
             ->latest()
             ->take(10)
-            ->get();
+            ->get()
+            ->unique('exam_code')
+            ->values();
 
         return view('ogretmen', compact('user', 'sonSinavlar'));
     }
@@ -34,28 +36,46 @@ class OgretmenController extends Controller
             ->take(80)
             ->get();
 
-        return view('ogretmen-sinav-olustur', compact('user', 'questions'));
+        $kazanimlar = Question::query()
+            ->when($user->branch, fn($q) => $q->where('ders', $user->branch))
+            ->whereNotNull('kazanim')
+            ->pluck('kazanim')
+            ->unique()
+            ->values();
+
+        return view('ogretmen-sinav-olustur', compact('user', 'questions', 'kazanimlar'));
     }
 
     public function sinavKaydet(Request $request)
     {
         $request->validate([
-            'title'                          => 'required|string|max:255',
-            'ders'                           => 'nullable|string|max:255',
-            'grade'                          => 'required|string|max:50',
-            'starts_at'                      => 'required|date',
-            'duration'                       => 'required|integer|min:1|max:180',
-            'question_ids'                   => 'nullable|array',
-            'question_ids.*'                 => 'integer|exists:questions,id',
-            'manual_questions'               => 'nullable|array',
-            'manual_questions.*.soru_metni'  => 'nullable|string',
-            'manual_questions.*.secenek_a'   => 'nullable|string',
-            'manual_questions.*.secenek_b'   => 'nullable|string',
-            'manual_questions.*.secenek_c'   => 'nullable|string',
-            'manual_questions.*.secenek_d'   => 'nullable|string',
-            'manual_questions.*.dogru_cevap' => 'nullable|string|in:A,B,C,D',
-            'image_questions'                => 'nullable|array',
-            'image_questions.*'              => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
+            'title'                               => 'required|string|max:255',
+            'ders'                                => 'nullable|string|max:255',
+            'grade'                               => 'required|string|max:50',
+            'starts_at'                           => 'required|date',
+            'duration'                            => 'required|integer|min:1|max:300',
+            'question_count'                      => 'nullable|integer|min:1|max:200',
+            'question_ids'                        => 'nullable|array',
+            'question_ids.*'                      => 'integer|exists:questions,id',
+
+            'manual_questions'                    => 'nullable|array',
+            'manual_questions.*.soru_metni'       => 'nullable|string',
+            'manual_questions.*.secenek_a'        => 'nullable|string',
+            'manual_questions.*.secenek_b'        => 'nullable|string',
+            'manual_questions.*.secenek_c'        => 'nullable|string',
+            'manual_questions.*.secenek_d'        => 'nullable|string',
+            'manual_questions.*.dogru_cevap'      => 'nullable|string|in:A,B,C,D',
+            'manual_questions.*.kazanim'          => 'nullable|string|max:255',
+
+            'image_questions'                     => 'nullable|array',
+            'image_questions.*.gorsel'            => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
+            'image_questions.*.soru_metni'        => 'nullable|string',
+            'image_questions.*.secenek_a'         => 'nullable|string',
+            'image_questions.*.secenek_b'         => 'nullable|string',
+            'image_questions.*.secenek_c'         => 'nullable|string',
+            'image_questions.*.secenek_d'         => 'nullable|string',
+            'image_questions.*.dogru_cevap'       => 'nullable|string|in:A,B,C,D',
+            'image_questions.*.kazanim'           => 'nullable|string|max:255',
         ]);
 
         $manualQuestions = collect($request->input('manual_questions', []))
@@ -67,25 +87,46 @@ class OgretmenController extends Controller
                 'secenek_c'   => $item['secenek_c']   ?? '',
                 'secenek_d'   => $item['secenek_d']   ?? '',
                 'dogru_cevap' => $item['dogru_cevap'] ?? '',
+                'kazanim'     => $item['kazanim']     ?? '',
             ])
-            ->values()->toArray();
+            ->values()
+            ->toArray();
 
         $imageQuestions = [];
-        if ($request->hasFile('image_questions')) {
-            foreach ($request->file('image_questions') as $file) {
-                if ($file) {
-                    $imageQuestions[] = [
-                        'path'          => $file->store('exam-question-images', 'public'),
-                        'original_name' => $file->getClientOriginalName(),
-                    ];
-                }
+        $imageInputs = $request->input('image_questions', []);
+
+        foreach ($imageInputs as $index => $item) {
+            $file = $request->file("image_questions.$index.gorsel");
+
+            if (!$file && empty($item['existing_path'] ?? null)) {
+                continue;
             }
+
+            $path = $item['existing_path'] ?? null;
+            $originalName = $item['original_name'] ?? null;
+
+            if ($file) {
+                $path = $file->store('exam-question-images', 'public');
+                $originalName = $file->getClientOriginalName();
+            }
+
+            $imageQuestions[] = [
+                'path'          => $path,
+                'original_name' => $originalName,
+                'soru_metni'    => $item['soru_metni']  ?? '',
+                'secenek_a'     => $item['secenek_a']   ?? '',
+                'secenek_b'     => $item['secenek_b']   ?? '',
+                'secenek_c'     => $item['secenek_c']   ?? '',
+                'secenek_d'     => $item['secenek_d']   ?? '',
+                'dogru_cevap'   => $item['dogru_cevap'] ?? '',
+                'kazanim'       => $item['kazanim']     ?? '',
+            ];
         }
 
         OnlineExam::create([
             'teacher_id'       => Auth::id(),
             'title'            => $request->title,
-            'ders'             => $request->ders,
+            'ders'             => $request->ders ?: Auth::user()->branch,
             'grade'            => $request->grade,
             'starts_at'        => $request->starts_at,
             'duration'         => (int) $request->duration,
@@ -99,31 +140,50 @@ class OgretmenController extends Controller
 
         return redirect()
             ->route('ogretmen.dashboard')
-            ->with('success', 'Sınav oluşturuldu! Panelden "Sınavı Başlat" butonuna bas.');
+            ->with('success', 'Sınav oluşturuldu! Sınav saati gelince başlatabilirsin.');
     }
 
     public function sinavBaslat(Request $request, OnlineExam $sinav)
     {
-        abort_if($sinav->teacher_id !== Auth::id(), 403);
+        if (!$sinav->teacher_id) {
+            $sinav->teacher_id = Auth::id();
+            $sinav->save();
+        }
+
+        abort_if((int) $sinav->teacher_id !== (int) Auth::id(), 403);
+
+        if ($sinav->starts_at && now()->lt($sinav->starts_at)) {
+            return redirect()
+                ->route('ogretmen.dashboard')
+                ->with('error', 'Sınav saati gelmeden sınavı başlatamazsınız. Başlangıç: ' . $sinav->starts_at->format('d.m.Y H:i'));
+        }
 
         $sinav->update([
             'is_active'  => true,
             'started_at' => now(),
         ]);
 
-        return back()->with('success', 'Sınav başlatıldı! Öğrenciler artık girebilir.');
+        return redirect()
+            ->route('ogretmen.dashboard')
+            ->with('success', 'Sınav başlatıldı! Öğrenciler artık girebilir.');
     }
 
     public function sinavDurdur(Request $request, OnlineExam $sinav)
     {
-        abort_if($sinav->teacher_id !== Auth::id(), 403);
+        if (!$sinav->teacher_id) {
+            $sinav->teacher_id = Auth::id();
+            $sinav->save();
+        }
+
+        abort_if($sinav->teacher_id != Auth::id(), 403);
 
         $sinav->update([
             'is_active' => false,
-            // started_at'e dokunma — süre hesabı için lazım
         ]);
 
-        return back()->with('success', 'Sınav durduruldu.');
+        return redirect()
+            ->route('ogretmen.dashboard')
+            ->with('success', 'Sınav durduruldu.');
     }
 
     public function soruEkle()
@@ -177,10 +237,12 @@ class OgretmenController extends Controller
 
     public function analizOdasi()
     {
-        $user     = Auth::user();
+        $user = Auth::user();
         $sinavlar = OnlineExam::where('teacher_id', $user->id)
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->get()
+            ->unique('exam_code')
+            ->values();
 
         $ozet = [];
         foreach ($sinavlar as $s) {
@@ -188,11 +250,10 @@ class OgretmenController extends Controller
                 ->with('user')
                 ->get();
 
-            // ── Liderlik tablosu — key adı 'isim' (blade ile tutarlı) ──
             $liderler = $sonuclar->sortByDesc('score')->take(3)->values()
                 ->map(fn($r, $i) => [
                     'sira'   => $i + 1,
-                    'isim'   => optional($r->user)->fullName() ?? 'Bilinmiyor',  // 'ad' değil 'isim'
+                    'isim'   => optional($r->user)->fullName() ?? 'Bilinmiyor',
                     'puan'   => $r->score,
                     'dogru'  => $r->correct_count,
                     'yanlis' => $r->wrong_count,
@@ -223,13 +284,19 @@ class OgretmenController extends Controller
         $user = Auth::user();
 
         $sinavlar = OnlineExam::where('teacher_id', $user->id)
-            ->orderBy('grade')->orderBy('starts_at')
-            ->get()->groupBy('grade');
+            ->orderBy('grade')
+            ->orderBy('starts_at')
+            ->get()
+            ->unique('exam_code')
+            ->values()
+            ->groupBy('grade');
 
         $ogrenciler = User::where('role', 'ogrenci')
             ->where('teacher_id', $user->id)
-            ->orderBy('grade')->orderBy('name')
-            ->get()->groupBy('grade');
+            ->orderBy('grade')
+            ->orderBy('name')
+            ->get()
+            ->groupBy('grade');
 
         return view('ogretmen-sinif', compact('user', 'sinavlar', 'ogrenciler'));
     }

@@ -3,9 +3,8 @@
     $manuelSorular = $manuelSorular ?? [];
     $gorselSorular = $gorselSorular ?? [];
     $kalanSaniye   = $kalanSaniye   ?? ($sinav->duration * 60);
+    $toplamSoru    = $sorular->count() + count($manuelSorular) + count($gorselSorular);
 @endphp
-
-{{-- Buradan sonra senin mevcut kodların (layout, section vb.) devam edecek --}}
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -60,7 +59,7 @@ body{font-family:'Nunito',sans-serif;background:#F4F2FF;color:#24114f;min-height
             <p>{{ $sinav->ders ?? 'Genel' }} · {{ $sinav->grade }}. Sınıf · {{ $sinav->duration }} dakika</p>
         </div>
         <div style="font-size:13px;color:#6b7280;font-weight:700;">
-            Toplam: {{ $sorular->count() + count($manuelSorular) }} soru
+            Toplam: {{ $toplamSoru }} soru
         </div>
     </div>
 
@@ -71,13 +70,9 @@ body{font-family:'Nunito',sans-serif;background:#F4F2FF;color:#24114f;min-height
     <form action="{{ route('ogrenci.test.sonuc') }}" method="POST" id="sinavForm">
         @csrf
 
-        {{-- KRITIK: online_exam_id buradan testSonuc'a taşınıyor — Analiz Odası için şart ──}}
         <input type="hidden" name="online_exam_id" value="{{ $sinav->id }}">
-
-        {{-- Dersler bilgisi (boş ama gerekli) --}}
         <input type="hidden" name="dersler[]" value="{{ $sinav->ders ?? '' }}">
 
-        {{-- DB'den gelen sorular --}}
         @foreach($sorular as $index => $soru)
         <div class="question-card" id="qcard-{{ $soru->id }}">
             <div class="q-num">Soru {{ $index + 1 }}</div>
@@ -104,12 +99,19 @@ body{font-family:'Nunito',sans-serif;background:#F4F2FF;color:#24114f;min-height
         </div>
         @endforeach
 
-        {{-- Manuel (JSON) sorular — Analiz için dogru_cevap kontrolü yapılamaz, sadece gösterim --}}
         @foreach($manuelSorular as $mi => $msoru)
         @php $mIndex = $sorular->count() + $mi; @endphp
         <div class="question-card" id="qcard-manual-{{ $mi }}">
             <div class="q-num">Soru {{ $mIndex + 1 }} <span style="color:#C084FC;">(Öğretmen Sorusu)</span></div>
             <div class="q-text">{{ $msoru['soru_metni'] ?? '' }}</div>
+
+            <input type="hidden" name="manual_questions[{{ $mi }}][soru_metni]" value="{{ $msoru['soru_metni'] ?? '' }}">
+            <input type="hidden" name="manual_questions[{{ $mi }}][secenek_a]" value="{{ $msoru['secenek_a'] ?? '' }}">
+            <input type="hidden" name="manual_questions[{{ $mi }}][secenek_b]" value="{{ $msoru['secenek_b'] ?? '' }}">
+            <input type="hidden" name="manual_questions[{{ $mi }}][secenek_c]" value="{{ $msoru['secenek_c'] ?? '' }}">
+            <input type="hidden" name="manual_questions[{{ $mi }}][secenek_d]" value="{{ $msoru['secenek_d'] ?? '' }}">
+            <input type="hidden" name="manual_questions[{{ $mi }}][dogru_cevap]" value="{{ $msoru['dogru_cevap'] ?? '' }}">
+            <input type="hidden" name="manual_questions[{{ $mi }}][kazanim]" value="{{ $msoru['kazanim'] ?? '' }}">
 
             <div class="options">
                 @foreach(['A' => ($msoru['secenek_a'] ?? ''), 'B' => ($msoru['secenek_b'] ?? ''), 'C' => ($msoru['secenek_c'] ?? ''), 'D' => ($msoru['secenek_d'] ?? '')] as $harf => $secenek)
@@ -123,44 +125,50 @@ body{font-family:'Nunito',sans-serif;background:#F4F2FF;color:#24114f;min-height
         </div>
         @endforeach
 
-        {{-- Görsel sorular (image_questions) --}}
-@foreach($gorselSorular as $gi => $gsoru)
-@php $gIndex = $sorular->count() + count($manuelSorular) + $gi; @endphp
-<div class="question-card" id="qcard-gorsel-{{ $gi }}">
-    <div class="q-num">
-        Soru {{ $gIndex + 1 }}
-        <span style="color:#f5a623;">(Görsel Soru)</span>
-    </div>
+        @foreach($gorselSorular as $gi => $gsoru)
+        @php $gIndex = $sorular->count() + count($manuelSorular) + $gi; @endphp
+        <div class="question-card" id="qcard-gorsel-{{ $gi }}">
+            <div class="q-num">Soru {{ $gIndex + 1 }} <span style="color:#f5a623;">(Görsel Soru)</span></div>
 
-    @if(!empty($gsoru['path']))
-        <img src="{{ asset('storage/' . $gsoru['path']) }}"
-             class="q-img"
-             alt="{{ $gsoru['original_name'] ?? 'Soru görseli' }}"
-             style="max-width:100%;border-radius:12px;margin-bottom:16px;display:block;">
-    @endif
+            @if(!empty($gsoru['path']))
+                <img src="{{ asset('storage/' . $gsoru['path']) }}" class="q-img" alt="{{ $gsoru['original_name'] ?? 'Soru görseli' }}">
+            @endif
 
-    {{-- Görsel sorularda şıklar manuel girilmediği için A-D boş göster --}}
-    <div class="options">
-        @foreach(['A','B','C','D'] as $harf)
-        <label class="option-label" onclick="markAnswered('qcard-gorsel-{{ $gi }}')">
-            <input type="radio" name="gorsel_{{ $gi }}" value="{{ $harf }}">
-            <div class="opt-bubble">{{ $harf }}</div>
-        </label>
+            @if(!empty($gsoru['soru_metni']))
+                <div class="q-text">{{ $gsoru['soru_metni'] }}</div>
+            @endif
+
+            <input type="hidden" name="image_questions[{{ $gi }}][path]" value="{{ $gsoru['path'] ?? '' }}">
+            <input type="hidden" name="image_questions[{{ $gi }}][soru_metni]" value="{{ $gsoru['soru_metni'] ?? '' }}">
+            <input type="hidden" name="image_questions[{{ $gi }}][secenek_a]" value="{{ $gsoru['secenek_a'] ?? '' }}">
+            <input type="hidden" name="image_questions[{{ $gi }}][secenek_b]" value="{{ $gsoru['secenek_b'] ?? '' }}">
+            <input type="hidden" name="image_questions[{{ $gi }}][secenek_c]" value="{{ $gsoru['secenek_c'] ?? '' }}">
+            <input type="hidden" name="image_questions[{{ $gi }}][secenek_d]" value="{{ $gsoru['secenek_d'] ?? '' }}">
+            <input type="hidden" name="image_questions[{{ $gi }}][dogru_cevap]" value="{{ $gsoru['dogru_cevap'] ?? '' }}">
+            <input type="hidden" name="image_questions[{{ $gi }}][kazanim]" value="{{ $gsoru['kazanim'] ?? '' }}">
+
+            <div class="options">
+                @foreach(['A' => ($gsoru['secenek_a'] ?? ''), 'B' => ($gsoru['secenek_b'] ?? ''), 'C' => ($gsoru['secenek_c'] ?? ''), 'D' => ($gsoru['secenek_d'] ?? '')] as $harf => $secenek)
+                <label class="option-label" onclick="markAnswered('qcard-gorsel-{{ $gi }}')">
+                    <input type="radio" name="gorsel_{{ $gi }}" value="{{ $harf }}">
+                    <div class="opt-bubble">{{ $harf }}</div>
+                    {{ $secenek }}
+                </label>
+                @endforeach
+            </div>
+        </div>
         @endforeach
-    </div>
-</div>
-@endforeach
 
         <div class="submit-area">
             <button type="submit" class="btn-submit">✅ Sınavı Bitir ve Gönder</button>
-            <div class="answered-count" id="answeredCount">0 / {{ $sorular->count() + count($manuelSorular) }} soru yanıtlandı</div>
+            <div class="answered-count" id="answeredCount">0 / {{ $toplamSoru }} soru yanıtlandı</div>
         </div>
     </form>
 </div>
 
 <script>
 let kalan = {{ $kalanSaniye }};
-const toplam = {{ $sorular->count() + count($manuelSorular) + count($gorselSorular) }};
+const toplam = {{ $toplamSoru }};
 
 function updateTimer() {
     const d = document.getElementById('timerDisplay');

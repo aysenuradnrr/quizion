@@ -87,9 +87,9 @@ tbody tr:hover{background:#fdfbff;}
                     @endphp
                     <div style="flex:1;min-width:160px;background:{{ $bg }};border-radius:16px;padding:15px;text-align:center;">
                         <div style="font-size:2.4rem;">{{ $madalya }}</div>
-                        <div style="font-weight:900;font-size:14px;color:#24114f;margin-top:6px;">{{ $l['ad'] }}</div>
-                        <div style="font-size:2rem;font-weight:900;color:#6C3FC5;margin-top:4px;">{{ $l['puan'] }}</div>
-                        <div style="font-size:11px;color:#6b7280;margin-top:4px;">✅ {{ $l['dogru'] }} Doğru</div>
+                        <div style="font-weight:900;font-size:14px;color:#24114f;margin-top:6px;">{{ $l['isim'] ?? 'Öğrenci' }}</div>
+                        <div style="font-size:2rem;font-weight:900;color:#6C3FC5;margin-top:4px;">{{ $l['puan'] ?? 0 }}</div>
+                        <div style="font-size:11px;color:#6b7280;margin-top:4px;">✅ {{ $l['dogru'] ?? 0 }} Doğru</div>
                     </div>
                 @endforeach
             </div>

@@ -37,7 +37,7 @@ class OnlineExam extends Model
 
     public function results()
     {
-        return $this->hasMany(TestResult::class);
+        return $this->hasMany(TestResult::class, 'online_exam_id');
     }
 
     public function isStarted(): bool

@@ -67,6 +67,12 @@ Route::middleware(['auth', 'ogretmen'])->group(function () {
     Route::post('/ogretmen/sinav-kaydet', [OgretmenController::class, 'sinavKaydet'])
         ->name('ogretmen.sinav.kaydet');
 
+    Route::get('/ogretmen/sinav/{sinav}/duzenle', [OgretmenController::class, 'sinavDuzenle'])
+        ->name('ogretmen.sinav.duzenle');
+
+    Route::post('/ogretmen/sinav/{sinav}/guncelle', [OgretmenController::class, 'sinavGuncelle'])
+        ->name('ogretmen.sinav.guncelle');
+
     Route::get('/ogretmen/soru-ekle', [OgretmenController::class, 'soruEkle'])
         ->name('ogretmen.soru.ekle');
 
@@ -84,8 +90,12 @@ Route::middleware(['auth', 'ogretmen'])->group(function () {
 
     Route::post('/ogretmen/profil', [OgretmenController::class, 'profilGuncelle'])
         ->name('ogretmen.profil.guncelle');
+
     Route::post('/ogretmen/sinav/{sinav}/baslat', [OgretmenController::class, 'sinavBaslat'])
             ->name('ogretmen.sinav.baslat');
+
+    Route::get('/ogretmen/sinav/{sinav}/baslat', [OgretmenController::class, 'sinavBaslat'])
+            ->name('ogretmen.sinav.baslat.get');        
 
     Route::post('/ogretmen/sinav/{sinav}/durdur', [OgretmenController::class, 'sinavDurdur'])
             ->name('ogretmen.sinav.durdur');

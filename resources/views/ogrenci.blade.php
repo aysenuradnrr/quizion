@@ -601,9 +601,22 @@ a{text-decoration:none;color:inherit}
 
             @forelse($yaklasanSinavlar as $sinav)
               @php
-                $diffHours = now()->diffInHours($sinav->starts_at, false);
-                $tagClass = $diffHours <= 2 ? 'live' : ($diffHours <= 24 ? 'soon' : 'plan');
-                $tagText = $diffHours <= 2 ? '🔴 Çok Yakın' : ($diffHours <= 24 ? '⏰ Yakın' : '📋 Planlı');
+                if ($sinav->isFinished()) {
+                    $tagClass = 'live';
+                    $tagText = 'Bitti';
+                } elseif ($sinav->is_active) {
+                    $tagClass = 'soon';
+                    $tagText = 'Devam Ediyor';
+                } elseif ($sinav->started_at) {
+                    $tagClass = 'live';
+                    $tagText = '⏸ Durduruldu';
+                } elseif ($sinav->starts_at && $sinav->starts_at->gt(now())) {
+                    $tagClass = 'plan';
+                    $tagText = '📋 Yaklaşan';
+                } else {
+                    $tagClass = 'plan';
+                    $tagText = '⏳ Başlatılmadı';
+                }
               @endphp
 
               <a class="exam-i" href="{{ route('ogrenci.yaklasan.sinavlar') }}">
