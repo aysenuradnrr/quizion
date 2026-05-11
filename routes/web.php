@@ -84,6 +84,11 @@ Route::middleware(['auth', 'ogretmen'])->group(function () {
 
     Route::post('/ogretmen/profil', [OgretmenController::class, 'profilGuncelle'])
         ->name('ogretmen.profil.guncelle');
+    Route::post('/ogretmen/sinav/{sinav}/baslat', [OgretmenController::class, 'sinavBaslat'])
+            ->name('ogretmen.sinav.baslat');
+
+    Route::post('/ogretmen/sinav/{sinav}/durdur', [OgretmenController::class, 'sinavDurdur'])
+            ->name('ogretmen.sinav.durdur');
 });
 
 // ── GENEL PROFİL ─────────────────────────────────────────

@@ -289,21 +289,51 @@ tbody tr:hover{background:#fdfbff;}
                 </tr>
             </thead>
             <tbody>
-                @foreach($sonSinavlar as $sinav)
-                <tr>
-                    <td><strong>{{ $sinav->title }}</strong></td>
-                    <td><span class="pin">{{ $sinav->exam_code }}</span></td>
-                    <td>{{ $sinav->ders ?? '—' }}</td>
-                    <td>{{ $sinav->grade }}</td>
-                    <td>{{ \Carbon\Carbon::parse($sinav->starts_at)->format('d.m.Y H:i') }}</td>
-                    <td>
-                        <span class="{{ $sinav->is_active ? 'badge-active' : 'badge-off' }}">
-                            {{ $sinav->is_active ? 'Aktif' : 'Pasif' }}
-                        </span>
-                    </td>
-                </tr>
-                @endforeach
-            </tbody>
+    @foreach($sonSinavlar as $sinav)
+        <tr>
+            <td><strong>{{ $sinav->title }}</strong></td>
+            <td><span class="pin">{{ $sinav->exam_code }}</span></td>
+            <td>{{ $sinav->ders ?? '-' }}</td>
+            <td>{{ $sinav->grade }}</td>
+            <td>{{ \Carbon\Carbon::parse($sinav->starts_at)->format('d.m.Y H:i') }}</td>
+            <td>
+               {{-- ESKİ MANTIK: sadece is_active kontrolü --}}
+
+{{-- YENİ MANTIK --}}
+@if($sinav->isFinished())
+    <span style="font-size:12px;color:#9ca3af;font-weight:700;">✅ Tamamlandı</span>
+
+@elseif($sinav->is_active)
+    <form action="{{ route('ogretmen.sinav.durdur', $sinav) }}" method="POST" style="display:inline;">
+        @csrf
+        <button type="submit" style="background:#dc2626;color:white;border:none;padding:7px 16px;border-radius:10px;font-weight:800;cursor:pointer;font-size:13px;">
+            ⏹ Durdur
+        </button>
+    </form>
+    <span class="sinav-countdown"
+        data-bitis="{{ $sinav->started_at ? $sinav->started_at->addMinutes($sinav->duration)->timestamp : 0 }}"
+        style="margin-left:8px;font-weight:900;color:#6C3FC5;font-size:13px;">
+    </span>
+
+@elseif($sinav->started_at)
+    {{-- Durduruldu ama bitmedi --}}
+    <form action="{{ route('ogretmen.sinav.baslat', $sinav) }}" method="POST" style="display:inline;">
+        @csrf
+        <button type="submit" style="background:#d97706;color:white;border:none;padding:7px 16px;border-radius:10px;font-weight:800;cursor:pointer;font-size:13px;">
+            ▶ Devam Ettir
+        </button>
+    </form>
+    <span style="font-size:11px;color:#6b7280;margin-left:6px;">⏸ Duraklatıldı</span>
+
+@else
+    {{-- Hiç başlatılmamış --}}
+    <form action="{{ route('ogretmen.sinav.baslat', $sinav) }}" method="POST" style="display:inline;">
+        @csrf
+        <button type="submit" style="background:#16a34a;color:white;border:none;padding:7px 16px;border-radius:10px;font-weight:800;cursor:pointer;font-size:13px;">
+            ▶ Sınavı Başlat
+        </button>
+    </form>
+@endif
         </table>
         @else
         <div class="empty">
@@ -351,6 +381,28 @@ function close(){sb.classList.remove('open');ov.classList.remove('open');}
 btn.addEventListener('click',open);
 cl.addEventListener('click',close);
 ov.addEventListener('click',close);
-</script>
+ov.addEventListener('click',close);
+
+        // --- YENİ EKLENEN SAYAÇ KODU BAŞLANGICI ---
+        document.querySelectorAll('.sinav-countdown').forEach(el => {
+            const bitis = parseInt(el.dataset.bitis);
+            if (!bitis) return;
+
+            setInterval(() => {
+                const kalan = bitis - Math.floor(Date.now() / 1000);
+                if (kalan <= 0) { 
+                    el.textContent = '⏰ Süre doldu'; 
+                    return; 
+                }
+                
+                const dk = Math.floor(kalan / 60);
+                const sn = kalan % 60;
+                
+                el.textContent = `⏱ ${String(dk).padStart(2,'0')}:${String(sn).padStart(2,'0')}`;
+            }, 1000);
+        });
+        // --- YENİ EKLENEN SAYAÇ KODU BİTİŞİ ---
+
+    </script>
 </body>
 </html>

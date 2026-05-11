@@ -72,7 +72,33 @@ tbody tr:hover{background:#fdfbff;}
 
     @if($sinavlar->count() > 0)
 
-        {{-- ── ÖZET TABLO ── --}}
+        
+ {{-- — LİDERLİK TABLOSU — --}}
+@foreach($sinavlar as $s)
+    @php $o = $ozet[$s->id] ?? []; @endphp
+    @if(count($o['liderler'] ?? []) > 0)
+        <div class="card" style="margin-bottom:22px;">
+            <div class="card-title">🏆 {{ $s->title }} - Liderlik Tablosu</div>
+            <div style="display:flex;gap:16px;flex-wrap:wrap;">
+                @foreach($o['liderler'] as $l)
+                    @php 
+                        $madalya = ['🥇','🥈','🥉'][$l['sira']-1] ?? '🏅';
+                        $bg      = ['#FEF9C3','#F3F4F6','#FEF3C7'][$l['sira']-1] ?? '#f9f9f9';
+                    @endphp
+                    <div style="flex:1;min-width:160px;background:{{ $bg }};border-radius:16px;padding:15px;text-align:center;">
+                        <div style="font-size:2.4rem;">{{ $madalya }}</div>
+                        <div style="font-weight:900;font-size:14px;color:#24114f;margin-top:6px;">{{ $l['ad'] }}</div>
+                        <div style="font-size:2rem;font-weight:900;color:#6C3FC5;margin-top:4px;">{{ $l['puan'] }}</div>
+                        <div style="font-size:11px;color:#6b7280;margin-top:4px;">✅ {{ $l['dogru'] }} Doğru</div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    @endif
+@endforeach
+
+
+       {{-- ── ÖZET TABLO ── --}}
         <div class="card">
             <div class="card-title">📋 Sınav Özeti</div>
             <table>

@@ -1,3 +1,11 @@
+@php
+    $sorular       = $sorular       ?? collect();
+    $manuelSorular = $manuelSorular ?? [];
+    $gorselSorular = $gorselSorular ?? [];
+    $kalanSaniye   = $kalanSaniye   ?? ($sinav->duration * 60);
+@endphp
+
+{{-- Buradan sonra senin mevcut kodların (layout, section vb.) devam edecek --}}
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -115,6 +123,34 @@ body{font-family:'Nunito',sans-serif;background:#F4F2FF;color:#24114f;min-height
         </div>
         @endforeach
 
+        {{-- Görsel sorular (image_questions) --}}
+@foreach($gorselSorular as $gi => $gsoru)
+@php $gIndex = $sorular->count() + count($manuelSorular) + $gi; @endphp
+<div class="question-card" id="qcard-gorsel-{{ $gi }}">
+    <div class="q-num">
+        Soru {{ $gIndex + 1 }}
+        <span style="color:#f5a623;">(Görsel Soru)</span>
+    </div>
+
+    @if(!empty($gsoru['path']))
+        <img src="{{ asset('storage/' . $gsoru['path']) }}"
+             class="q-img"
+             alt="{{ $gsoru['original_name'] ?? 'Soru görseli' }}"
+             style="max-width:100%;border-radius:12px;margin-bottom:16px;display:block;">
+    @endif
+
+    {{-- Görsel sorularda şıklar manuel girilmediği için A-D boş göster --}}
+    <div class="options">
+        @foreach(['A','B','C','D'] as $harf)
+        <label class="option-label" onclick="markAnswered('qcard-gorsel-{{ $gi }}')">
+            <input type="radio" name="gorsel_{{ $gi }}" value="{{ $harf }}">
+            <div class="opt-bubble">{{ $harf }}</div>
+        </label>
+        @endforeach
+    </div>
+</div>
+@endforeach
+
         <div class="submit-area">
             <button type="submit" class="btn-submit">✅ Sınavı Bitir ve Gönder</button>
             <div class="answered-count" id="answeredCount">0 / {{ $sorular->count() + count($manuelSorular) }} soru yanıtlandı</div>
@@ -123,9 +159,8 @@ body{font-family:'Nunito',sans-serif;background:#F4F2FF;color:#24114f;min-height
 </div>
 
 <script>
-const SURE_DAKIKA = {{ $sure }};
-let kalan = SURE_DAKIKA * 60;
-const toplam = {{ $sorular->count() + count($manuelSorular) }};
+let kalan = {{ $kalanSaniye }};
+const toplam = {{ $sorular->count() + count($manuelSorular) + count($gorselSorular) }};
 
 function updateTimer() {
     const d = document.getElementById('timerDisplay');
