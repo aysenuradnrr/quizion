@@ -24,9 +24,9 @@ body{background:var(--bg);font-family:'Nunito',sans-serif;color:var(--text);min-
 <body>
 <div class="topbar"><a href="{{ route('home') }}" class="logo">Quiz<span>ion</span></a><div class="top-actions"><a href="{{ route('profile.edit') }}" class="teacher-chip"><div class="teacher-avatar">{{ strtoupper(substr($user->name, 0, 1)) }}</div>{{ $user->name }}</a><a href="{{ route('ogretmen.dashboard') }}" class="back-btn">← Panele Dön</a></div></div>
 <div class="container">
-    <div class="hero"><div class="hero-left"><h1>{{ $isEdit ? '✏️ Online Sınavı Düzenle' : '📋 Yeni Online Sınav Oluştur' }}</h1><p>Süreyi ve soru sayısını klavyeden yaz. Her soru için kazanım seç.</p></div><div class="hero-badge">🔑 Sınav kodu otomatik oluşturulur</div></div>
+    <div class="hero"><div class="hero-left"><h1>{{ $isEdit ? ' Online Sınavı Düzenle' : ' Yeni Online Sınav Oluştur' }}</h1><p>Süreyi ve soru sayısını klavyeden yaz. Her soru için kazanım seç.</p></div><div class="hero-badge">🔑 Sınav kodu otomatik oluşturulur</div></div>
     <div class="main-card">
-        <div class="card-head"><div class="head-icon">🧠</div><div><h2>Sınav Bilgileri</h2><p>Sınav saati gelene kadar sınav içeriğini düzenleyebilirsin.</p></div></div>
+        <div class="card-head"><div class="head-icon"></div><div><h2>Sınav Bilgileri</h2><p>Sınav saati gelene kadar sınav içeriğini düzenleyebilirsin.</p></div></div>
         <div class="form-body">
             @if ($errors->any())<div class="error-box">@foreach ($errors->all() as $error)<div>{{ $error }}</div>@endforeach</div>@endif
             @if (session('success'))<div class="success-box">{{ session('success') }}</div>@endif
@@ -55,7 +55,7 @@ body{background:var(--bg);font-family:'Nunito',sans-serif;color:var(--text);min-
                     <div class="field"><label>Soru Sayısı</label><input type="number" id="questionCount" name="question_count" min="1" max="200" value="{{ $questionCount }}" required><div class="help">Seçtiğin sayı kadar soru alanı açılır.</div></div>
                 </div>
                 @if($questions->count() > 0)
-                <div class="section-title">📚 Soru Bankasından Seç</div>
+                <div class="section-title"> Soru Bankasından Seç</div>
                 <div class="bank-box"><div class="bank-list">@foreach($questions as $q)<label class="bank-item"><input type="checkbox" name="question_ids[]" value="{{ $q->id }}" {{ in_array((string)$q->id, $selectedQuestionIds) ? 'checked' : '' }}>{{ $q->soru_metni ?: 'Görselli soru' }}<br><small>{{ $q->kazanim }}</small></label>@endforeach</div><div class="help">Soru bankasından seçilen sorular da toplam soru sayısına dahil edilir.</div></div>
                 @endif
                 <div class="question-tools"><div><strong>📝 Manuel / Görsel Sorular</strong><span>Soru sayısını değiştirince alanlar otomatik güncellenir.</span></div></div>

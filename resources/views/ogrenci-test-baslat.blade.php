@@ -110,7 +110,7 @@ body{font-family:'Nunito',sans-serif;background:linear-gradient(135deg,#f7f3ff,#
 
   <div class="hero">
     <div>
-      <h1>🚀 Test Çözmeye Başla</h1>
+      <h1>Test Çözmeye Başla</h1>
       <p>Birden fazla ders ve kazanım seçerek sana özel test oluştur.</p>
     </div>
     <div class="hero-badge">Akıllı test oluşturucu</div>
@@ -118,6 +118,14 @@ body{font-family:'Nunito',sans-serif;background:linear-gradient(135deg,#f7f3ff,#
 
   <form method="POST" action="{{ route('ogrenci.test.olustur') }}" id="testForm">
     @csrf
+
+    @if ($errors->any())
+      <div class="step" style="border-color:#ffb3b3;background:#fff5f5;color:#8a0000;font-weight:900;line-height:1.6">
+        @foreach ($errors->all() as $error)
+          <div>⚠️ {{ $error }}</div>
+        @endforeach
+      </div>
+    @endif
 
     <input type="hidden" name="kolay_sayisi" id="kolayInput" value="2">
     <input type="hidden" name="orta_sayisi" id="ortaInput" value="2">
@@ -170,10 +178,10 @@ body{font-family:'Nunito',sans-serif;background:linear-gradient(135deg,#f7f3ff,#
 
               <div class="kazanim-grid">
                 @foreach($items as $item)
-                  <label class="card kazanim-card" data-ders="{{ $item->ders }}" data-kazanim="{{ $item->kazanim_adi }}">
-                    <input type="checkbox" name="kazanimlar[]" value="{{ $item->kazanim_adi }}" class="hidden-check kazanim-check">
+                  <label class="card kazanim-card" data-ders="{{ $item->ders }}" data-kazanim="{{ $item->kazanim }}">
+                    <input type="checkbox" name="kazanimlar[]" value="{{ $item->kazanim }}" class="hidden-check kazanim-check">
                     <div class="icon">🎯</div>
-                    <h3>{{ $item->kazanim_adi }}</h3>
+                    <h3>{{ $item->kazanim }}</h3>
                     <p>{{ $item->ders }}</p>
                   </label>
                 @endforeach
@@ -191,21 +199,21 @@ body{font-family:'Nunito',sans-serif;background:linear-gradient(135deg,#f7f3ff,#
 
           <div class="level-grid">
             <div class="level-card">
-              <div class="icon">🟢</div>
+              <div class="icon"></div>
               <h3>Kolay</h3>
               <p>Temel seviye sorular</p>
               <input type="number" min="0" max="20" value="2" class="level-count" id="kolayCount">
             </div>
 
             <div class="level-card">
-              <div class="icon">🟡</div>
+              <div class="icon"></div>
               <h3>Orta</h3>
               <p>Normal seviye sorular</p>
               <input type="number" min="0" max="20" value="2" class="level-count" id="ortaCount">
             </div>
 
             <div class="level-card">
-              <div class="icon">🔴</div>
+              <div class="icon"></div>
               <h3>Zor</h3>
               <p>Seçici sorular</p>
               <input type="number" min="0" max="20" value="1" class="level-count" id="zorCount">

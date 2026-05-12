@@ -100,7 +100,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--td)}
 <div class="hero">
   <div class="hero-top">
     <div>
-      <h1>🚀 {{ $ders }} Testi</h1>
+      <h1> {{ $ders }} Testi</h1>
       <p>Kazanım: <strong>{{ $kazanim }}</strong></p>
     </div>
 
@@ -134,11 +134,11 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--td)}
         <div class="q-number">{{ $index + 1 }}</div>
 
         @if($question->zorluk == 'Kolay')
-          <div class="badge easy">🟢 Kolay</div>
+          <div class="badge easy"> Kolay</div>
         @elseif($question->zorluk == 'Orta')
-          <div class="badge medium">🟡 Orta</div>
+          <div class="badge medium"> Orta</div>
         @else
-          <div class="badge hard">🔴 Zor</div>
+          <div class="badge hard"> Zor</div>
         @endif
       </div>
 

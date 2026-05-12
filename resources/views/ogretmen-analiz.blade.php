@@ -141,7 +141,7 @@ tbody tr:hover{background:#fdfbff;}
 
         {{-- ── BİREYSEL DETAY (her sınav için açılır panel) ── --}}
         <div class="card">
-            <div class="card-title">👤 Öğrenci Bazında Detay</div>
+            <div class="card-title"> Öğrenci Bazında Detay</div>
 
             @foreach($sinavlar as $s)
             @php $o = $ozet[$s->id] ?? []; @endphp
@@ -204,7 +204,7 @@ tbody tr:hover{background:#fdfbff;}
     @else
     <div class="card">
         <div class="empty">
-            <div class="big">📭</div>
+            <div class="big"></div>
             <p>Henüz sınav oluşturmadınız.<br>
                <a href="{{ route('ogretmen.sinav.olustur') }}" style="color:#6C3FC5;font-weight:800;">İlk sınavı oluştur →</a>
             </p>

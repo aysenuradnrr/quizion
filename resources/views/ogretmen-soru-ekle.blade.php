@@ -107,7 +107,7 @@ textarea{
 
 <div class="container">
 
-    <h1>🧠 Soru Üretim Merkezi</h1>
+    <h1> Soru Üretim Merkezi</h1>
     <div class="desc">
         Oluşturduğun sorular öğrencilerin test oluştur ekranına otomatik eklenir.
     </div>

@@ -49,17 +49,17 @@ body{font-family:'Nunito',sans-serif;background:#F4F2FF;color:#24114f;}
 
 <div class="main">
     <div class="page-header">
-        <h1>🏫 Sınıf Yönetimi</h1>
+        <h1> Sınıf Yönetimi</h1>
         <p>Sorumlu olduğun öğrenciler ve sınıf bazında sınavlar</p>
     </div>
 
     @if($ogrenciler->isEmpty() && $sinavlar->isEmpty())
     <div class="card">
         <div class="info-box">
-            ℹ️ Henüz sana atanmış öğrenci yok. Öğrenciler kayıt olurken veya yönetici panelinden sana atanabilirler.
+             Henüz sana atanmış öğrenci yok. Öğrenciler kayıt olurken veya yönetici panelinden sana atanabilirler.
         </div>
         <div class="empty-state">
-            <div class="big">🏫</div>
+            <div class="big"></div>
             <p>Sınıf verisi bulunamadı.</p>
         </div>
     </div>
@@ -111,7 +111,7 @@ body{font-family:'Nunito',sans-serif;background:#F4F2FF;color:#24114f;}
 
                 @if($sinavlar->isEmpty())
                     <div class="empty-state">
-                        <div class="big">📭</div>
+                        <div class="big"></div>
                         <p>Henüz sınav oluşturulmadı.</p>
                         <a href="{{ route('ogretmen.sinav.olustur') }}" style="color:#6C3FC5;font-weight:800;font-size:13px;">Sınav Oluştur →</a>
                     </div>
